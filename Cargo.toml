@@ -1,0 +1,9 @@
+[package]
+name = "music_theory"
+version = "0.1.0"
+edition = "2021"
+authors = ["Jackson H. Griggs"]
+
+[dependencies]
+regex = "1.9.4"
+thiserror = "1.0.47"
