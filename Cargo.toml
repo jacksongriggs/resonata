@@ -6,7 +6,7 @@ edition = "2021"
 readme = "README.md"
 description = "A music theory library for Rust."
 repository = "https://github.com/jacksongriggs/resonata"
-keywords = ["music", "theory", "chords", "scales", "notes", "intervals", "keys", "modes"]
+keywords = ["music-theory", "harmony", "scales", "chords", "intervals"]
 license = "MIT"
 
 [dependencies]
