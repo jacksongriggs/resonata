@@ -8,4 +8,5 @@ pub use intervals::Interval;
 pub use notes::Note;
 pub use scales::Scale;
 pub use error::ResonataError;
+pub use std::str::FromStr;
 // pub use chords::Chord;
