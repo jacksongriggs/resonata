@@ -21,6 +21,15 @@ impl FromStr for NoteName {
 
 impl Display for NoteName {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_string())
+        let token = match self {
+            C => "C",
+            D => "D",
+            E => "E",
+            F => "F",
+            G => "G",
+            A => "A",
+            B => "B",
+        };
+        write!(f, "{}", token)
     }   
 }

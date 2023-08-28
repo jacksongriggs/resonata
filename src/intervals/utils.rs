@@ -54,22 +54,8 @@ impl cmp::Ord for Interval {
 
 impl Display for Interval {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let semitones = self.semitones;
-        let (quality, size) = match semitones % 12 {
-            0 => (Perfect, Unison),
-            1 => (Minor, Second),
-            2 => (Major, Second),
-            3 => (Minor, Third),
-            4 => (Major, Third),
-            5 => (Perfect, Fourth),
-            6 => (Diminished(1), Fifth),
-            7 => (Perfect, Fifth),
-            8 => (Minor, Sixth),
-            9 => (Major, Sixth),
-            10 => (Minor, Seventh),
-            11 => (Major, Seventh),
-            _ => unreachable!("Modulo 12 should never be outside of 0-11")
-        };
+        let quality = self.quality.to_string();
+        let size = self.size.as_str(self.octaves);
 
         write!(f, "{}{}", quality, size)
     }

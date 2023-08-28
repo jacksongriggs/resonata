@@ -14,14 +14,6 @@ pub enum Accidental {
 }
 
 impl Accidental {
-    pub fn to_string(&self) -> String {
-        match self {
-            Flat(n) => "♭".repeat(*n as usize),
-            Natural => "♮".to_string(),
-            Sharp(n) => "♯".repeat(*n as usize),
-        }
-    }
-
     pub fn to_semitones(&self) -> i8 {
         match self {
             Flat(n) => -(*n as i8),

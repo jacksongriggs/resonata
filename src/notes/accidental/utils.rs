@@ -37,6 +37,20 @@ impl FromStr for Accidental {
 
 impl Display for Accidental {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_string())
+        let token = match self {
+            Flat(n) => "♭".repeat(*n as usize),
+            Natural => "♮".to_string(),
+            Sharp(n) => {
+                let mut token;
+                if *n % 2 == 0 {
+                    token = "𝄪".repeat(*n as usize / 2);
+                } else {
+                    token = "♯".to_string();
+                    token.push_str(&"𝄪".repeat((*n as usize - 1) / 2));
+                }
+                token
+            }
+        };
+        write!(f, "{}", token)
     }   
 }

@@ -8,18 +8,6 @@ pub enum NoteName {
 }
 
 impl NoteName {
-    pub fn to_string(&self) -> String {
-        match self {
-            C => "C".to_string(),
-            D => "D".to_string(),
-            E => "E".to_string(),
-            F => "F".to_string(),
-            G => "G".to_string(),
-            A => "A".to_string(),
-            B => "B".to_string(),
-        }
-    }
-
     /// Returns the chromatic number of the note name, based on the C major scale
     pub fn to_chromatic_number (&self) -> u8 {
         match self {

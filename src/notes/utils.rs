@@ -30,23 +30,10 @@ impl FromStr for Note {
 
 impl Display for Note {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let octave = (self.number / 12) - 1;
-        let note_name = match self.number % 12 {
-            0 => "C",
-            1 => "C#",
-            2 => "D",
-            3 => "D#",
-            4 => "E",
-            5 => "F",
-            6 => "F#",
-            7 => "G",
-            8 => "G#",
-            9 => "A",
-            10 => "A#",
-            11 => "B",
-            _ => "",
-        };
-        write!(f, "{}{}", note_name, octave)
+        let note_name = self.note_name.to_string();
+        let accidental = self.accidental.to_string();
+        let octave = self.octave.to_string();
+        write!(f, "{}{}{}", note_name, accidental, octave)
     }
 }
 
