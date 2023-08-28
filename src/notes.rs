@@ -95,6 +95,10 @@ impl Note {
         })
     }
 
+    pub fn from_note_name_and_octave(note_name: NoteName, octave: i8) -> Result<Note, ResonataError> {
+        Self::build(note_name, Natural, octave)
+    }
+
     /// Returns the midi number of the note
     pub fn number(&self) -> u8 {
         self.number
