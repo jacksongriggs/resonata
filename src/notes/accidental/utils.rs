@@ -39,7 +39,7 @@ impl Display for Accidental {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let token = match self {
             Flat(n) => "♭".repeat(*n as usize),
-            Natural => "♮".to_string(),
+            Natural => "".to_string(),
             Sharp(n) => {
                 let mut token;
                 if *n % 2 == 0 {
