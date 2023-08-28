@@ -3,8 +3,7 @@ use regex::Regex;
 use super::*;
 
 impl FromStr for Interval {
-    type Err = IntervalError;
-
+    type Err = ResonataError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let re = Regex::new(r"^(?P<quality>[mMpPaAdD\+-]*)(?P<size>\d+)(?:th)?").unwrap();
         if let Some(cap) = re.captures(s) {
@@ -13,14 +12,14 @@ impl FromStr for Interval {
             println!("quality: {}, size: {}", quality_expr, size_expr);
             let quality = IntervalQuality::from_str(quality_expr)?;
             let raw_size = size_expr.parse::<u8>()
-                .map_err(|_| IntervalError::InvalidInterval)?;
+                .map_err(|_| InvalidInterval)?;
             let octaves = (raw_size - 1) / 7;
             let effective_size = (raw_size - 1) % 7 + 1;
             let size = IntervalSize::from_str(&effective_size.to_string())?;
             Interval::build(quality, size, octaves)
         } else {
             eprintln!("Invalid interval format: {}", s);
-            Err(IntervalError::InvalidIntervalFormat)
+            nope!(InvalidIntervalFormat)
         }
     }
 }

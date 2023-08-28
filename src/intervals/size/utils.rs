@@ -2,7 +2,7 @@ use std::{fmt::{self, Display, Formatter}, str::FromStr};
 use super::super::*;
 
 impl FromStr for IntervalSize {
-    type Err = IntervalError;
+    type Err = ResonataError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
@@ -15,7 +15,7 @@ impl FromStr for IntervalSize {
             "seventh" | "7th" | "7" => Ok(Seventh),
             _ => {
                 eprintln!("Invalid interval size: {}", s);
-                Err(IntervalError::InvalidIntervalSize)
+                nope!(InvalidIntervalSize)
             }
         }
     }

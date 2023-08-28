@@ -1,6 +1,8 @@
 use crate::{Note, Interval};
 pub use types::ScaleType::*;
-pub use crate::error::ScaleError;
+pub use crate::error::ScaleError::{self, *};
+pub use crate::error::ResonataError;
+pub use crate::nope;
 
 pub mod types;
 pub mod macros;
@@ -78,9 +80,9 @@ impl Scale {
         steps
     }
 
-    pub fn from_notes(mut notes: Vec<Note>) -> Result<Scale, ScaleError> {
+    pub fn from_notes(mut notes: Vec<Note>) -> Result<Scale, ResonataError> {
         if notes.len() < 3 {
-            return Err(ScaleError::InvalidScale);
+            nope!(InvalidScale);
         }
     
         notes.sort();
@@ -88,7 +90,7 @@ impl Scale {
         let mut intervals = Vec::new();
         let root = notes.remove(0);
         for note in notes {
-            intervals.push(root.interval_to(&note));
+            intervals.push(root.interval_to(&note)?);
         }
         
         Ok(Self {

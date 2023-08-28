@@ -1,6 +1,6 @@
 #[macro_export]
 macro_rules! scale {
-    ($root:expr, $scale_type:expr) => {
+    ($root:expr, $scale_type:ident) => {
         Scale::from_steps(Some($root), $scale_type.to_steps())
     };
 

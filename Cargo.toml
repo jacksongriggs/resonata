@@ -1,9 +1,15 @@
 [package]
-name = "music_theory"
+name = "resonata"
 version = "0.1.0"
 edition = "2021"
-authors = ["Jackson H. Griggs"]
+authors = ["Jackson Griggs"]
 
 [dependencies]
 regex = "1.9.4"
 thiserror = "1.0.47"
+
+[package.metadata]
+keywords = ["music", "theory", "chords", "scales", "notes", "intervals", "keys", "modes"]
+categories = ["education", "analysis", "midi", "music"]
+description = "A music theory library for Rust."
+license = "MIT"

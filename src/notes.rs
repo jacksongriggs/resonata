@@ -1,6 +1,8 @@
 pub use name::NoteName::{self, *};
 pub use accidental::Accidental::{self, *};
-pub use crate::error::NoteError;
+pub use crate::error::NoteError::{self, *};
+pub use crate::error::ResonataError;
+pub use crate::nope;
 
 pub mod name;
 pub mod accidental;
@@ -17,9 +19,9 @@ pub struct Note {
 }
 
 impl Note {
-    pub fn new(number: u8) -> Result<Note, NoteError> {
+    pub fn new(number: u8) -> Result<Note, ResonataError> {
         if number > 127 {
-            return Err(NoteError::InvalidNote);
+            nope!(InvalidNote);
         }
         
         let note_name = match number % 12 {
@@ -45,15 +47,15 @@ impl Note {
         Ok(Note { number, note_name, accidental, octave })
     }
 
-    pub fn build(note_name: NoteName, accidental: Accidental, octave: i8) -> Result<Note, NoteError> {
+    pub fn build(note_name: NoteName, accidental: Accidental, octave: i8) -> Result<Note, ResonataError> {
         if octave < -1 || octave > 9 {
-            return Err(NoteError::InvalidOctave);
+            nope!(InvalidOctave);
         }
         
         let number = note_name.to_chromatic_number() as i16 + accidental.to_semitones() as i16 + 12 * (octave as i16 + 1);
         
         if number < 0 || number > 127 {
-            return Err(NoteError::InvalidNote);
+            nope!(InvalidNote);
         }
         
         Ok(Note { 
@@ -80,7 +82,7 @@ impl Note {
         self.octave
     }
 
-    pub fn interval_to(&self, note: &Note) -> crate::Interval {
-        crate::Interval::new((note.number - self.number) as i8).unwrap()
+    pub fn interval_to(&self, note: &Note) -> Result<crate::Interval, ResonataError> {
+        crate::Interval::new((note.number - self.number) as i8)
     }
 }

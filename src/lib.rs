@@ -7,5 +7,5 @@ pub mod error;
 pub use intervals::Interval;
 pub use notes::Note;
 pub use scales::Scale;
-pub use error::MTError;
+pub use error::ResonataError;
 // pub use chords::Chord;

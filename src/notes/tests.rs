@@ -12,8 +12,8 @@ mod tests {
 
     #[test]
     fn test_new_invalid_note() {
-        assert_eq!(Err(NoteError::InvalidNote), Note::new(128));
-        assert_eq!(Err(NoteError::InvalidNote), Note::new(255));
+        assert_eq!(err!(InvalidNote), Note::new(128));
+        assert_eq!(err!(InvalidNote), Note::new(255));
     }
 
     #[test]
@@ -26,9 +26,9 @@ mod tests {
     
     #[test]
     fn test_build_invalid_note() {
-        assert_eq!(Err(NoteError::InvalidNote), Note::build(G, Sharp(1), 9)); // Too high
-        assert_eq!(Err(NoteError::InvalidNote), Note::build(C, Sharp(127), 4)); // Too high
-        assert_eq!(Err(NoteError::InvalidOctave), Note::build(C, Flat(1), -2)); // Too low
+        assert_eq!(err!(InvalidNote), Note::build(G, Sharp(1), 9)); // Too high
+        assert_eq!(err!(InvalidNote), Note::build(C, Sharp(127), 4)); // Too high
+        assert_eq!(err!(InvalidOctave), Note::build(C, Flat(1), -2)); // Too low
     }
 
     #[test]
@@ -51,12 +51,12 @@ mod tests {
     #[test]
     fn test_from_str_invalid_notes() {
         // Test invalid note strings
-        assert_eq!(Err(NoteError::InvalidNoteName), Note::from_str("")); // Empty string
-        assert_eq!(Err(NoteError::InvalidNoteName), Note::from_str("X")); // Invalid note name
-        assert_eq!(Err(NoteError::InvalidAccidental), Note::from_str("C#b")); // Conflicting accidentals
-        assert_eq!(Err(NoteError::InvalidOctave), Note::from_str("C-4")); // Invalid octave (too low)
-        assert_eq!(Err(NoteError::InvalidOctave), Note::from_str("B#10")); // Invalid octave (too high)
-        assert_eq!(Err(NoteError::InvalidNoteName), Note::from_str("C-#4")); // Negative
+        assert_eq!(err!(InvalidNoteName), Note::from_str("")); // Empty string
+        assert_eq!(err!(InvalidNoteName), Note::from_str("X")); // Invalid note name
+        assert_eq!(err!(InvalidAccidental), Note::from_str("C#b")); // Conflicting accidentals
+        assert_eq!(err!(InvalidOctave), Note::from_str("C-4")); // Invalid octave (too low)
+        assert_eq!(err!(InvalidOctave), Note::from_str("B#10")); // Invalid octave (too high)
+        assert_eq!(err!(InvalidNoteName), Note::from_str("C-#4")); // Negative
     }
 
     #[test]

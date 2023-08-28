@@ -3,8 +3,7 @@ use regex::Regex;
 use super::super::*;
 
 impl FromStr for IntervalQuality {
-    type Err = crate::error::IntervalError;
-
+    type Err = ResonataError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let re = Regex::new(r"^(M(?:aj(?:or)?)?|m(?:in(?:or)?)?|(?i)P(?:erf(?:ect)?)?|(?i)a(?:ug(?:mented)?)?(?:\+{2,3})?|(?i)d(?:im(?:inished)?)?(?:-{2,3})?)$").unwrap();
 
@@ -24,12 +23,12 @@ impl FromStr for IntervalQuality {
                 },
                 _ => {
                     eprintln!("Invalid interval quality: {}", quality);
-                    Err(IntervalError::InvalidIntervalQuality)
+                    nope!(InvalidIntervalQuality)
                 }
             }
         } else {
             eprintln!("Invalid interval quality: {}", s);
-            Err(IntervalError::InvalidIntervalQuality)
+            nope!(InvalidIntervalQuality)
         }
     }
 }

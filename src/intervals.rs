@@ -1,6 +1,8 @@
 pub use quality::IntervalQuality::{self, *};
 pub use size::IntervalSize::{self, *};
-pub use crate::error::IntervalError;
+pub use crate::error::IntervalError::{self, *};
+pub use crate::error::ResonataError;
+pub use crate::nope;
 
 pub mod quality;
 pub mod size;
@@ -17,9 +19,9 @@ pub struct Interval {
 }
 
 impl Interval {
-    pub fn new(semitones: i8) -> Result<Interval, IntervalError> {
+    pub fn new(semitones: i8) -> Result<Self, ResonataError> {
         if semitones < -127 {
-            return Err(IntervalError::InvalidInterval);
+            nope!(InvalidInterval);
         }
 
         let (quality, size) = match semitones % 12 {
@@ -48,14 +50,14 @@ impl Interval {
         })
     }
 
-    pub fn build(quality: IntervalQuality, size: IntervalSize, octaves: u8) -> Result<Self, IntervalError> {
+    pub fn build(quality: IntervalQuality, size: IntervalSize, octaves: u8) -> Result<Self, ResonataError> {
         match quality {
             Major | Minor => match size {
-                Unison | Fourth | Fifth => return Err(IntervalError::InvalidInterval),
+                Unison | Fourth | Fifth => nope!(InvalidInterval),
                 _ => {}
             },
             Perfect => match size {
-                Second | Third | Sixth | Seventh => return Err(IntervalError::InvalidInterval),
+                Second | Third | Sixth | Seventh => nope!(InvalidInterval),
                 _ => {}
             },
             _ => {}
@@ -71,8 +73,8 @@ impl Interval {
         })
     }
 
-    pub fn from_notes(note1: &crate::Note, note2: &crate::Note) -> Self {
-        Self::new((note1.number() as i8 - note2.number() as i8).abs()).unwrap()
+    pub fn from_notes(note1: &crate::Note, note2: &crate::Note) -> Result<Self, ResonataError> {
+        Self::new((note1.number() as i8 - note2.number() as i8).abs())
     }
 
     pub fn semitones(&self) -> i8 {

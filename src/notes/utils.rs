@@ -3,7 +3,7 @@ use regex::Regex;
 use super::*;
 
 impl FromStr for Note {
-    type Err = NoteError;
+    type Err = ResonataError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let re = Regex::new("^([A-Ga-g])([#x𝄪b♯♯♭♭♮]*)(-?[0-9]*)$").unwrap();
@@ -18,12 +18,12 @@ impl FromStr for Note {
                 let octave: i8 = octave_str.parse().unwrap_or(4);
         
                 if octave < -1 || octave > 9 {
-                    return Err(NoteError::InvalidOctave);
+                    nope!(InvalidOctave);
                 }
         
                 Self::build(note_name, accidental, octave)
             }
-            None => Err(NoteError::InvalidNoteName),
+            None => nope!(InvalidNoteName),
         }
     }
 }
@@ -51,16 +51,16 @@ impl Display for Note {
 }
 
 impl Add<crate::Interval> for Note {
-    type Output = Result<Note, NoteError>;
-    fn add(self, interval: crate::Interval) -> Result<Note, NoteError> {
+    type Output = Result<Note, ResonataError>;
+    fn add(self, interval: crate::Interval) -> Self::Output {
         let number = self.number as i16 + interval.semitones() as i16;
         Note::new(cmp::max(0, cmp::min(127, number)) as u8)
     }
 }
 
 impl Sub<crate::Interval> for Note {
-    type Output = Result<Note, NoteError>;
-    fn sub(self, interval: crate::Interval) -> Result<Note, NoteError> {
+    type Output = Result<Note, ResonataError>;
+    fn sub(self, interval: crate::Interval) -> Self::Output {
         let number = self.number as i16 - interval.semitones() as i16;
         Note::new(cmp::max(0, cmp::min(127, number)) as u8)
     }
