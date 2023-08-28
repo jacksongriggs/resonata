@@ -1,8 +1,12 @@
-use crate::{Note, Interval};
 pub use types::ScaleType::*;
-pub use crate::error::ScaleError::{self, *};
-pub use crate::error::ResonataError;
-pub use crate::nope;
+pub use crate::{
+    Note,
+    Interval, 
+    nope,
+    error::{
+        ScaleError::{self, *}, 
+        ResonataError}
+};
 
 pub mod types;
 pub mod macros;
@@ -129,6 +133,7 @@ impl Scale {
     }
 
     pub fn interval(&self, n: usize) -> Interval {
+        let n = std::cmp::min(n, self.intervals.len() - 1);
         self.intervals[n]
     }
 

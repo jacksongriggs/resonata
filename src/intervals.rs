@@ -1,8 +1,11 @@
 pub use quality::IntervalQuality::{self, *};
 pub use size::IntervalSize::{self, *};
-pub use crate::error::IntervalError::{self, *};
-pub use crate::error::ResonataError;
-pub use crate::nope;
+pub use crate::{
+    nope,
+    error::{
+        IntervalError::{self, *},
+        ResonataError}
+};
 
 pub mod quality;
 pub mod size;

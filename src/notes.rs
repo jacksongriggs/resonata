@@ -1,8 +1,11 @@
 pub use name::NoteName::{self, *};
 pub use accidental::Accidental::{self, *};
-pub use crate::error::NoteError::{self, *};
-pub use crate::error::ResonataError;
-pub use crate::nope;
+pub use crate::{
+    nope,
+    error::{
+        NoteError::{self, *},
+        ResonataError}
+};
 
 pub mod name;
 pub mod accidental;
