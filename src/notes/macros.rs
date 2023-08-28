@@ -1,3 +1,4 @@
+/// A macro to create a note.
 #[macro_export]
 macro_rules! note {
     // For note!(C);

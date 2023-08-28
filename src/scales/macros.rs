@@ -1,3 +1,4 @@
+/// A macro to create a scale from a root note and a scale type.
 #[macro_export]
 macro_rules! scale {
     ($root:expr, $scale_type:ident) => {
