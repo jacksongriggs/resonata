@@ -46,6 +46,7 @@ pub enum ResonataError {
     ScaleError(#[from] ScaleError),
 }
 
+/// A macro to create a `ResonataError` from a `NoteError`, `IntervalError` or `ScaleError`
 #[macro_export]
 macro_rules! err {
     ($e:expr) => {
@@ -53,6 +54,7 @@ macro_rules! err {
     };
 }
 
+/// A macro to retur
 #[macro_export]
 macro_rules! nope {
     ($e:expr) => {
