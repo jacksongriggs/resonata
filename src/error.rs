@@ -54,7 +54,7 @@ macro_rules! err {
     };
 }
 
-/// A macro to retur
+/// A macro to return a `ResonataError` from a `NoteError`, `IntervalError` or `ScaleError`
 #[macro_export]
 macro_rules! nope {
     ($e:expr) => {

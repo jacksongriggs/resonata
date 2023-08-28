@@ -10,7 +10,7 @@ pub use crate::{
 
 pub mod types;
 pub mod macros;
-pub mod utils;
+mod utils;
 mod tests;
 
 /// A musical scale
@@ -20,7 +20,8 @@ mod tests;
 /// [Unison, MajorSecond, MajorThird, PerfectFourth, PerfectFifth, MajorSixth, MajorSeventh]
 /// 
 /// A macro is provided to make creating scales easier:
-/// scale!((optional: <root note>) <scale type>)
+/// scale!(note scale_type)
+/// scale!(scale_type)
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Scale {
     pub root: Option<Note>,

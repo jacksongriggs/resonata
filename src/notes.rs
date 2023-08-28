@@ -9,8 +9,8 @@ pub use crate::{
 
 pub mod name;
 pub mod accidental;
-pub mod utils;
 pub mod macros;
+mod utils;
 mod tests;
 
 /// A musical note
@@ -33,8 +33,10 @@ mod tests;
 /// The default octave is 4.
 /// 
 /// A macro is provided to make creating notes easier:
-/// note!(<note name> <accidental> <octave>)
-/// note!(<string>)
+/// note!(name accidental octave: i8)
+/// note!(name accidental) (default octave is 4)
+/// note!(name) (default accidental is natural, default octave is 4)
+/// note!(string)
 #[derive(Debug, Clone, Copy, Eq)]
 pub struct Note {
     number: u8,

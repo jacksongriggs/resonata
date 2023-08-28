@@ -9,8 +9,8 @@ pub use crate::{
 
 pub mod quality;
 pub mod size;
-pub mod utils;
 pub mod macros;
+mod utils;
 mod tests;
 
 /// A musical interval
@@ -32,8 +32,9 @@ mod tests;
 /// For example, a ninth would have one octave.
 /// 
 /// A macro is provided to make creating intervals easier:
-/// inv!(<interval quality> <interval size> (optional: <number of octaves>))
-/// inv!(<string>)
+/// inv!(quality size octaves: u8)
+/// inv!(quality size) (default octaves is 0)
+/// inv!(string)
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Interval {
     semitones: i8,
