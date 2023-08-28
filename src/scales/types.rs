@@ -1,6 +1,7 @@
 use std::fmt::{self, Display, Formatter};
 pub use ScaleType::*;
 
+/// A non-exhaustive list of musical scales
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ScaleType {
     Major,

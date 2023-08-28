@@ -2,6 +2,9 @@ pub use IntervalSize::*;
 
 pub mod utils;
 
+/// A musical interval size
+/// To get an octave or above, use the `octaves` field
+/// in the `Interval` struct
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum IntervalSize {
     Unison,

@@ -1,3 +1,4 @@
+/// Macro for creating intervals.
 #[macro_export]
 macro_rules! inv {
     // int!(quality size octaves) 
