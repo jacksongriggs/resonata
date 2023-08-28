@@ -72,8 +72,6 @@ impl cmp::PartialEq for Note {
     }
 }
 
-impl cmp::Eq for Note {}
-
 impl cmp::PartialOrd for Note {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         self.number.partial_cmp(&other.number)

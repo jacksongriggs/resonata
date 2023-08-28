@@ -13,7 +13,7 @@ pub mod utils;
 pub mod macros;
 mod tests;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Eq)]
 pub struct Note {
     number: u8,
     note_name: NoteName,
