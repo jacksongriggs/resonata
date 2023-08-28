@@ -49,11 +49,11 @@ mod tests {
 
     #[test]
     fn test_interval_macros() {
-        assert_eq!(inv!(Perfect Unison), Interval::build(Perfect, Unison, 0));
-        assert_eq!(inv!(Perfect Unison 1), Interval::build(Perfect, Unison, 1));
-        assert_eq!(inv!(Major Third), Interval::build(Major, Third, 0));
-        assert_eq!(inv!(Diminished(1) Fourth 2), Interval::build(Diminished(1), Fourth, 2));
-        assert_eq!(inv!(Augmented(1) Fifth), Interval::build(Augmented(1), Fifth, 0));
+        assert_eq!(inv!(Perfect, Unison), Interval::build(Perfect, Unison, 0));
+        assert_eq!(inv!(Perfect, Unison, 1), Interval::build(Perfect, Unison, 1));
+        assert_eq!(inv!(Major, Third), Interval::build(Major, Third, 0));
+        assert_eq!(inv!(Diminished(1), Fourth, 2), Interval::build(Diminished(1), Fourth, 2));
+        assert_eq!(inv!(Augmented(1), Fifth), Interval::build(Augmented(1), Fifth, 0));
     }
 
     #[test]

@@ -62,10 +62,10 @@ mod tests {
     #[test]
     fn test_macros() {
         assert_eq!(note!(C), Note::build(C, Natural, 4));
-        assert_eq!(note!(C Flat(1)), Note::build(C, Flat(1), 4));
-        assert_eq!(note!(C 4), Note::build(C, Natural, 4));
-        assert_eq!(note!(C Flat(1) 4), Note::build(C, Flat(1), 4));
-        assert_eq!(note!(E Sharp(2) -1), Note::build(E, Sharp(2), -1));
+        assert_eq!(note!(C, Flat(1)), Note::build(C, Flat(1), 4));
+        assert_eq!(note!(C, 4), Note::build(C, Natural, 4));
+        assert_eq!(note!(C, Flat(1), 4), Note::build(C, Flat(1), 4));
+        assert_eq!(note!(E, Sharp(2), -1), Note::build(E, Sharp(2), -1));
         assert_eq!(note!("C4"), Note::build(C, Natural, 4));
     }
 }
