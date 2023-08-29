@@ -28,7 +28,7 @@ impl Add for Interval {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
-        Self::new(self.semitones + other.semitones).unwrap()
+        Self::new(self.semitones + other.semitones)
     }
 }
 
@@ -36,7 +36,23 @@ impl Sub for Interval {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self {
-        Self::new(self.semitones - other.semitones).unwrap()
+        Self::new(self.semitones - other.semitones)
+    }
+}
+
+impl Add<u8> for Interval {
+    type Output = Self;
+
+    fn add(self, other: u8) -> Self {
+        Self::new(self.semitones + other)
+    }
+}
+
+impl Sub<u8> for Interval {
+    type Output = Self;
+
+    fn sub(self, other: u8) -> Self {
+        Self::new(self.semitones - other)
     }
 }
 

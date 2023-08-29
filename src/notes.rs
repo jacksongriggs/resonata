@@ -46,11 +46,10 @@ pub struct Note {
 }
 
 impl Note {
-    /// Creates a new note from a midi number
-    pub fn new(number: u8) -> Result<Note, ResonataError> {
-        if number > 127 {
-            nope!(InvalidNote);
-        }
+    /// Creates a new note from a midi number. Numbers outside of the range
+    /// 0 to 127 will be clamped to the nearest valid number.
+    pub fn new(number: u8) -> Self {
+        let number = std::cmp::min(number, 127);
         
         let note_name = match number % 12 {
             0 => C,
@@ -72,30 +71,25 @@ impl Note {
 
         let octave = (number as i8 / 12) - 1;
 
-        Ok(Note { number, note_name, accidental, octave })
+        Note { number, note_name, accidental, octave }
     }
 
-    /// Creates a new note from a note name, accidental and octave
-    pub fn build(note_name: NoteName, accidental: Accidental, octave: i8) -> Result<Note, ResonataError> {
-        if octave < -1 || octave > 9 {
-            nope!(InvalidOctave);
-        }
-        
+    /// Creates a new note from a note name, accidental and octave.
+    /// Octave numbers outside of the range -1 to 9 will be clamped to the nearest valid number.
+    pub fn build(note_name: NoteName, accidental: Accidental, octave: i8) -> Note {
+        let octave = std::cmp::min(std::cmp::max(octave, -1), 9);
         let number = note_name.to_chromatic_number() as i16 + accidental.to_semitones() as i16 + 12 * (octave as i16 + 1);
+        let number = std::cmp::min(std::cmp::max(number, 0), 127) as u8;
         
-        if number < 0 || number > 127 {
-            nope!(InvalidNote);
-        }
-        
-        Ok(Note { 
-            number: number as u8, 
+        Note { 
+            number, 
             note_name, 
             accidental, 
             octave 
-        })
+        }
     }
 
-    pub fn from_note_name_and_octave(note_name: NoteName, octave: i8) -> Result<Note, ResonataError> {
+    pub fn from_note_name_and_octave(note_name: NoteName, octave: i8) -> Note {
         Self::build(note_name, Natural, octave)
     }
 
@@ -117,10 +111,5 @@ impl Note {
     /// Returns the octave of the note
     pub fn octave(&self) -> i8 {
         self.octave
-    }
-
-    /// Returns the interval from the note to another note
-    pub fn interval_to(&self, note: &Note) -> Result<crate::Interval, ResonataError> {
-        crate::Interval::new((note.number - self.number) as i8)
     }
 }

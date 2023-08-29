@@ -21,7 +21,7 @@ impl FromStr for Note {
                     nope!(InvalidOctave);
                 }
         
-                Self::build(note_name, accidental, octave)
+                Ok(Self::build(note_name, accidental, octave))
             }
             None => nope!(InvalidNoteName),
         }
@@ -37,19 +37,51 @@ impl Display for Note {
     }
 }
 
+impl Add<u8> for Note {
+    type Output = Note;
+    fn add(self, semitones: u8) -> Self::Output {
+        let number = self.number as u16 + semitones as u16;
+        Note::new(number as u8)
+    }
+}
+
+impl Sub<u8> for Note {
+    type Output = Note;
+    fn sub(self, semitones: u8) -> Self::Output {
+        let number = self.number as i16 - semitones as i16;
+        Note::new(number as u8)
+    }
+}
+
+impl Sub<Note> for Note {
+    type Output = crate::Interval;
+    fn sub(self, other: Note) -> Self::Output {
+        let semitones = self.number as i16 - other.number as i16;
+        crate::Interval::new(semitones.abs() as u8)
+    }
+}
+
 impl Add<crate::Interval> for Note {
-    type Output = Result<Note, ResonataError>;
+    type Output = Option<Note>;
     fn add(self, interval: crate::Interval) -> Self::Output {
         let number = self.number as i16 + interval.semitones() as i16;
-        Note::new(cmp::max(0, cmp::min(127, number)) as u8)
+        if number > 127 {
+            None
+        } else {
+            Some(Note::new(number as u8))
+        }
     }
 }
 
 impl Sub<crate::Interval> for Note {
-    type Output = Result<Note, ResonataError>;
+    type Output = Option<Note>;
     fn sub(self, interval: crate::Interval) -> Self::Output {
         let number = self.number as i16 - interval.semitones() as i16;
-        Note::new(cmp::max(0, cmp::min(127, number)) as u8)
+        if number < 0 {
+            None
+        } else {
+            Some(Note::new(number as u8))
+        }
     }
 }
 

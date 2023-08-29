@@ -49,9 +49,14 @@ impl Scale {
         Self::from_steps(root, MelodicMinor.to_steps())
     }
 
-    /// Creates a pentatonic scale
-    pub fn pentatonic(root: Option<Note>) -> Self {
-        Self::from_steps(root, Pentatonic.to_steps())
+    /// Creates a major pentatonic scale
+    pub fn major_pentatonic(root: Option<Note>) -> Self {
+        Self::from_steps(root, MajorPentatonic.to_steps())
+    }
+
+    /// Creates a minor pentatonic scale
+    pub fn minor_pentatonic(root: Option<Note>) -> Self {
+        Self::from_steps(root, MinorPentatonic.to_steps())
     }
 
     /// Creates a minor blues scale
@@ -81,12 +86,12 @@ impl Scale {
     
     /// Creates a scale from a root note and a list of steps
     /// Steps are relative to the previous note
-    pub fn from_steps(root: Option<Note>, steps: Vec<i8>) -> Self {
+    pub fn from_steps(root: Option<Note>, steps: Vec<u8>) -> Self {
         let mut intervals = Vec::new();
         let mut semitones = 0;
         for step in steps {
             semitones += step;
-            intervals.push(Interval::new(semitones).unwrap());
+            intervals.push(Interval::new(semitones));
         }
 
         Self {
@@ -96,7 +101,7 @@ impl Scale {
     }
     
     /// Returns the steps of the scale
-    pub fn to_steps(&self) -> Vec<i8> {
+    pub fn to_steps(&self) -> Vec<u8> {
         let mut steps = Vec::new();
         let mut previous_semitone = 0;
         for interval in &self.intervals {
@@ -107,23 +112,26 @@ impl Scale {
     }
 
     /// Creates a scale from a list of notes
-    pub fn from_notes(mut notes: Vec<Note>) -> Result<Scale, ResonataError> {
-        if notes.len() < 3 {
-            nope!(InvalidScale);
+    pub fn from_notes(mut notes: Vec<Note>) -> Scale {
+        if notes.len() == 0 {
+            return Self {
+                root: None,
+                intervals: Vec::new(),
+            }
         }
-    
+        
         notes.sort();
         
         let mut intervals = Vec::new();
         let root = notes.remove(0);
         for note in notes {
-            intervals.push(root.interval_to(&note)?);
+            intervals.push(root - note);
         }
         
-        Ok(Self {
+        Self {
             root: Some(root),
             intervals,
-        })
+        }
     }
 
     /// Returns the notes of the scale
@@ -131,7 +139,7 @@ impl Scale {
     pub fn to_notes(&self) -> Vec<Note> {
         let root = match &self.root {
             Some(root) => *root,
-            None => Note::new(60).unwrap(),
+            None => Note::new(60),
         };
 
         let mut notes = Vec::new();
@@ -144,17 +152,22 @@ impl Scale {
     }
     
     /// Rotates the scale by n steps in the given direction
-    pub fn rotate(&mut self, n: usize, direction: Direction) {
-        *self = self.rotated(n, direction);
+    /// The root note is retained, so for example rotating a major scale up by 1 step
+    /// will result in a dorian scale
+    pub fn rotate(&mut self, n: i8) {
+        *self = self.rotated(n);
     }
 
     /// Returns a rotated scale by n steps in the given direction
-    pub fn rotated(&self, n: usize, direction: Direction) -> Self {
+    /// The root note is kept, so for example rotating a major scale up by 1 step
+    /// will result in a dorian scale
+    pub fn rotated(&self, n: i8) -> Self {
         let mut steps = self.to_steps();
-        let n = n % steps.len();
-        match direction {
-            Direction::Up => steps.rotate_left(n),
-            Direction::Down => steps.rotate_right(n),
+        let rotate_left = n > 0;
+        let n = n % steps.len() as i8;
+        match rotate_left {
+            true => steps.rotate_left(n as usize),
+            false => steps.rotate_right(n.abs() as usize),
         }
         Self::from_steps(self.root, steps)
     }

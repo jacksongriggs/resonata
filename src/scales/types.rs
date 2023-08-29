@@ -1,4 +1,4 @@
-use std::fmt::{self, Display, Formatter};
+use std::{fmt::{self, Display, Formatter}, vec};
 pub use ScaleType::*;
 
 /// A non-exhaustive list of musical scales
@@ -8,7 +8,8 @@ pub enum ScaleType {
     Minor,
     HarmonicMinor,
     MelodicMinor,
-    Pentatonic,
+    MajorPentatonic,
+    MinorPentatonic,
     MinorBlues,
     MajorBlues,
     WholeTone,
@@ -16,14 +17,46 @@ pub enum ScaleType {
     Chromatic,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum MajorModes {
+    Ionian,
+    Dorian,
+    Phrygian,
+    Lydian,
+    Mixolydian,
+    Aeolian,
+    Locrian,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum HarmonicMinorModes {
+    LocrianNat6 = 1,
+    IonianAugmented,
+    DorianSharp4,
+    PhrygianDominant,
+    LydianSharp2,
+    SuperLocrian,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum MelodicMinorModes {
+    DorianFlat2 = 1,
+    LydianAugmented,
+    LydianDominant,
+    AeolianDominant,
+    HalfDiminished,
+    Altered,
+}
+
 impl ScaleType {
-    pub fn to_steps(&self) -> Vec<i8> {
+    pub fn to_steps(&self) -> Vec<u8> {
         match self {
             Major => vec![2, 2, 1, 2, 2, 2, 1],
             Minor => vec![2, 1, 2, 2, 1, 2, 2],
             HarmonicMinor => vec![2, 1, 2, 2, 1, 3, 1],
             MelodicMinor => vec![2, 1, 2, 2, 2, 2, 1],
-            Pentatonic => vec![2, 2, 3, 2, 3],
+            MajorPentatonic => vec![2, 2, 3, 2, 3],
+            MinorPentatonic => vec![3, 2, 2, 3, 2],
             MinorBlues => vec![3, 2, 1, 1, 3, 2],
             MajorBlues => vec![2, 1, 1, 3, 2, 3],
             WholeTone => vec![2, 2, 2, 2, 2, 2],
@@ -40,7 +73,8 @@ impl Display for ScaleType {
             Minor => "Minor",
             HarmonicMinor => "Harmonic Minor",
             MelodicMinor => "Melodic Minor",
-            Pentatonic => "Pentatonic",
+            MajorPentatonic => "Major Pentatonic",
+            MinorPentatonic => "Minor Pentatonic",
             MinorBlues => "Minor Blues",
             MajorBlues => "Major Blues",
             WholeTone => "Whole Tone",
@@ -49,5 +83,21 @@ impl Display for ScaleType {
         };
 
         write!(f, "{}", token)
+    }
+}
+
+impl MajorModes {
+    pub fn to_steps(&self) -> Vec<u8> {
+        let mut mode = ScaleType::Major.to_steps();
+        mode.rotate_left(*self as usize);
+        mode
+    }
+}
+
+impl HarmonicMinorModes {
+    pub fn to_steps(&self) -> Vec<u8> {
+        let mut mode = ScaleType::HarmonicMinor.to_steps();
+        mode.rotate_left(*self as usize);
+        mode
     }
 }

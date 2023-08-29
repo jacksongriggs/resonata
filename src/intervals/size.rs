@@ -29,7 +29,7 @@ impl IntervalSize {
         }
     }
 
-    pub fn to_diatonic_semitones(&self) -> i8 {
+    pub fn to_diatonic_semitones(&self) -> u8 {
         match self {
             Unison => 0,
             Second => 2,

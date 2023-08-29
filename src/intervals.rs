@@ -37,18 +37,20 @@ mod tests;
 /// inv!(string)
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Interval {
-    semitones: i8,
+    semitones: u8,
     quality: IntervalQuality,
     size: IntervalSize,
     octaves: u8,
 }
 
 impl Interval {
-    /// Creates a new interval from a number of semitones
-    pub fn new(semitones: i8) -> Result<Self, ResonataError> {
-        if semitones < -127 {
-            nope!(InvalidInterval);
-        }
+    /// Creates a new interval from a number of semitones.
+    /// Numbers outside of the range 0 to 127 will be clamped
+    /// to the nearest valid number, so it's best to do your
+    /// own checking before creating an interval if you want
+    /// to avoid this.
+    pub fn new(semitones: u8) -> Self {
+        let semitones = std::cmp::min(semitones, 127);
 
         let (quality, size) = match semitones % 12 {
             0 => (Perfect, Unison),
@@ -68,12 +70,12 @@ impl Interval {
 
         let octaves = (semitones / 12) as u8;
 
-        Ok(Interval {
+        Interval {
             semitones,
             quality,
             size,
             octaves,
-        })
+        }
     }
 
     /// Creates a new interval from an interval quality, size and number of octaves
@@ -90,23 +92,23 @@ impl Interval {
             _ => {}
         }
 
-        let semitones = size.to_diatonic_semitones() + quality.to_semitones();
+        let semitones = size.to_diatonic_semitones() as i8 + quality.to_semitones();
+        let semitones = (semitones + octaves as i8 * 12).abs() as u8;
 
-        Ok(Self {
-            semitones: semitones + (octaves as i8 * 12),
-            quality,
-            size,
-            octaves,
-        })
-    }
-
-    /// Creates an interval from a note to another note
-    pub fn from_notes(note1: &crate::Note, note2: &crate::Note) -> Result<Self, ResonataError> {
-        Self::new((note1.number() as i8 - note2.number() as i8).abs())
+        match semitones {
+            0..=127 => Ok (Self {
+                semitones,
+                quality,
+                size,
+                octaves,
+            }),
+            _ => nope!(InvalidInterval)
+        }
+           
     }
 
     /// Returns the size of the interval in semitones
-    pub fn semitones(&self) -> i8 {
+    pub fn semitones(&self) -> u8 {
         self.semitones
     }
 
