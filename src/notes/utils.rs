@@ -17,7 +17,7 @@ impl From<u8> for Note {
 impl From<Note> for u8 {
     fn from(note: Note) -> u8 {
         let number = u8::from(note.name) as i8 + i8::from(note.accidental);
-        number as u8
+        number.abs() as u8
     }
 }
 
