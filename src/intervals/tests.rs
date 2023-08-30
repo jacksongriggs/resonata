@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
     use super::super::*;
     use crate::*;
 
