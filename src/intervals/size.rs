@@ -1,11 +1,12 @@
 pub use IntervalSize::*;
 
 pub mod utils;
+mod tests;
 
 /// A musical interval size
 /// To get an octave or above, use the `octaves` field
 /// in the `Interval` struct
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub enum IntervalSize {
     Unison,
     Second,
@@ -17,49 +18,30 @@ pub enum IntervalSize {
 }
 
 impl IntervalSize {
-    pub fn to_number(&self) -> u8 {
-        match self {
-            Unison => 1,
-            Second => 2,
-            Third => 3,
-            Fourth => 4,
-            Fifth => 5,
-            Sixth => 6,
-            Seventh => 7,
-        }
-    }
-
+    /// Returns the number of diatonic semitones in the interval, based on the C major scale
+    /// For example, a third has 4 diatonic semitones (C - E)
     pub fn to_diatonic_semitones(&self) -> u8 {
         match self {
-            Unison => 0,
-            Second => 2,
-            Third => 4,
-            Fourth => 5,
-            Fifth => 7,
-            Sixth => 9,
-            Seventh => 11,
+            Unison => 0, // Perfect = 0, Augmented = 1, Diminished = 1
+            Second => 2, // Major = 2, Minor = 1, Augmented = 3, Diminished = 0
+            Third => 4, // Major = 4, Minor = 3, Augmented = 5, Diminished = 2
+            Fourth => 5, // Perfect = 5, Augmented = 6, Diminished = 4
+            Fifth => 7, // Perfect = 7, Augmented = 8, Diminished = 6
+            Sixth => 9, // Major = 9, Minor = 8, Augmented = 10, Diminished = 7
+            Seventh => 11, // Major = 11, Minor = 10, Augmented = 12, Diminished = 9
         }
     }
 
-    // String representation of the interval size
-    // Unison (U) and octave (8ve) are special cases, as they
-    // are not represented by a number, but by the
-    // word itself. All other intervals (2..7, 9.._) are represented
-    // by a number, followed by the suffix "th", "st", "nd" or "rd"
-    pub fn as_str(&self, octaves: u8) -> String {
-        let number = self.to_number() + (octaves * 7);
-        match number {
-            1 => "U".to_string(),
-            8 => "8ve".to_string(),
-            _ => {
-                let suffix = match number % 10 {
-                    1 => "st",
-                    2 => "nd",
-                    3 => "rd",
-                    _ => "th",
-                };
-                format!("{}{}", number, suffix)
-            }
+    /// Inverts the interval size. For example, a third inverted is a sixth.
+    pub fn invert(&self) -> Self {
+        match self {
+            Unison => Unison,
+            Second => Seventh,
+            Third => Sixth,
+            Fourth => Fifth,
+            Fifth => Fourth,
+            Sixth => Third,
+            Seventh => Second,
         }
     }
 }

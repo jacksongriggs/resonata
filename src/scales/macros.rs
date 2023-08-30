@@ -2,9 +2,10 @@
 #[macro_export]
 macro_rules! scale {
     ($scale_type:expr, $rot:literal) => {
-        Scale::from_steps(None, $scale_type.to_steps().rotate_left($rot))
+        Scale::from_steps($scale_type.as_steps()).rotated($rot)
     };
-    ($root:expr, $scale_type:expr, $rot:literal) => {
-        Scale::from_steps(Some($root), $scale_type.to_steps()).rotated($rot)
+    ($scale_type:expr, $rot:literal) => {
+        Scale::from_steps($scale_type.as_steps()).rotated($rot)
     };
+
 }

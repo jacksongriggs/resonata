@@ -1,6 +1,44 @@
-use std::{fmt::{self, Display, Formatter}, str::FromStr};
+use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr, ops::{Add, Sub}};
 use super::*;
-use crate::error::NoteError;
+use crate::error::NoteError::{self, *};
+
+impl From<i8> for Accidental {
+    fn from(value: i8) -> Self {
+        if value < 0 {
+            Flat(value.abs() as u8)
+        } else if value == 0 {
+            Natural
+        } else {
+            Sharp(value as u8)
+        }
+    }
+}
+
+impl From<Accidental> for i8 {
+    fn from(acc: Accidental) -> Self {
+        match acc {
+            Flat(n) => -(n as i8),
+            Natural => 0,
+            Sharp(n) => n as i8,
+        }
+    }
+}
+
+impl Add<i8> for Accidental {
+    type Output = Self;
+
+    fn add(self, amount: i8) -> Self::Output {
+        Self::from(i8::from(self) + amount)
+    }
+}
+
+impl Sub<i8> for Accidental {
+    type Output = Self;
+    
+    fn sub(self, amount: i8) -> Self::Output {
+        Self::from(i8::from(self) - amount)
+    }
+}
 
 impl FromStr for Accidental {
     type Err = NoteError;
@@ -18,15 +56,20 @@ impl FromStr for Accidental {
                     if sharp_count == 0 && flat_count == 0 {
                         return Ok(Natural)
                     } else {
-                        return Err(NoteError::InvalidAccidental)
+                        eprintln!("Accidental: {} {}", InvalidAccidentalCombination, s);
+                        return Err(InvalidAccidentalCombination)
                     }
                 },
-                _ => return Err(NoteError::InvalidAccidental),
+                _ => {
+                    eprintln!("Accidental: Invalid accidental: {}", s);
+                    return Err(InvalidAccidental)
+                }
             }
         }
     
         if sharp_count > 0 && flat_count > 0 {
-            Err(NoteError::InvalidAccidental)
+            eprintln!("Accidental: {} {}", InvalidAccidentalCombination, s);
+            Err(InvalidAccidentalCombination)
         } else if flat_count > 0 {
             Ok(Flat(flat_count))
         } else {
@@ -39,7 +82,7 @@ impl Display for Accidental {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let token = match self {
             Flat(n) => "♭".repeat(*n as usize),
-            Natural => "".to_string(),
+            Natural => "nat".to_string(),
             Sharp(n) => {
                 let mut token;
                 if *n % 2 == 0 {
@@ -52,5 +95,11 @@ impl Display for Accidental {
             }
         };
         write!(f, "{}", token)
+    }   
+}
+
+impl Debug for Accidental {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.to_string())
     }   
 }

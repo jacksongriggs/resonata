@@ -5,37 +5,20 @@ mod tests {
     use crate::*;
 
     #[test]
-    fn test_from_str_interval_quality() {
-        use IntervalQuality as IQ;
-        assert_eq!(IQ::from_str("M"), Ok(Major));
-        assert_eq!(IQ::from_str("m"), Ok(Minor));
-        assert_eq!(IQ::from_str("P"), Ok(Perfect));
-        assert_eq!(IQ::from_str("A"), Ok(Augmented(1)));
-        assert_eq!(IQ::from_str("d"), Ok(Diminished(1)));
-        assert_eq!(IQ::from_str("Maj"), Ok(Major));
-        assert_eq!(IQ::from_str("min"), Ok(Minor));
-        assert_eq!(IQ::from_str("perf"), Ok(Perfect));
-        assert_eq!(IQ::from_str("aug"), Ok(Augmented(1)));
-        assert_eq!(IQ::from_str("dim"), Ok(Diminished(1)));
-        assert_eq!(IQ::from_str("A++"), Ok(Augmented(3)));
-        assert_eq!(IQ::from_str("d--"), Ok(Diminished(3)));
-        assert_eq!(IQ::from_str("Aug"), Ok(Augmented(1)));
-        assert_eq!(IQ::from_str("Dim"), Ok(Diminished(1)));
-        assert_eq!(IQ::from_str("Major"), Ok(Major));
-        assert_eq!(IQ::from_str("minor"), Ok(Minor));
-        assert_eq!(IQ::from_str("Perfect"), Ok(Perfect));
-        assert_eq!(IQ::from_str("augmented"), Ok(Augmented(1)));
-        assert_eq!(IQ::from_str("diminished"), Ok(Diminished(1)));
-        assert_eq!(IQ::from_str("Q"), err!(InvalidIntervalQuality));
+    fn test_to_u8() {
+        assert_eq!(u8::from(inv!(Perfect, Unison).unwrap()), 0);
+        assert_eq!(u8::from(inv!(Major, Second).unwrap()), 2);
+        assert_eq!(u8::from(inv!(Augmented(1), Fourth).unwrap()), 6);
+        assert_eq!(u8::from(inv!(Diminished(1), Fifth).unwrap()), 6);
     }
 
     #[test]
     fn test_build_valid_interval() {
         let interval = Interval::build(Perfect, Unison, 1).unwrap();
-        assert_eq!(12, interval.semitones());
+        assert_eq!(12, u8::from(interval));
         
         let interval = Interval::build(Major, Third, 0).unwrap();
-        assert_eq!(4, interval.semitones());
+        assert_eq!(4, u8::from(interval));
     }
 
     #[test]
@@ -57,36 +40,34 @@ mod tests {
     }
 
     #[test]
-    fn test_valid_interval_from_str() {
-        // Test building a valid interval from string
-        let min_2nd = Interval::from_str("m2").unwrap();
-        assert_eq!(min_2nd.quality, Minor);
-        assert_eq!(min_2nd.size, Second);
-        assert_eq!(min_2nd.octaves, 0);
+    fn test_cmp() {
+        assert_eq!(inv!(Perfect, Unison), inv!(Perfect, Unison));
+        assert!(inv!(Perfect, Unison).unwrap() < inv!(Major, Second).unwrap());
+        assert!(inv!(Diminished(2), Fifth).unwrap() < inv!(Augmented(1), Fourth).unwrap());
+        assert_eq!(inv!(Augmented(1), Fourth).unwrap(), inv!(Diminished(1), Fifth).unwrap());
+    }
 
-        let dbl_aug_4th = Interval::from_str("++4").unwrap();
-        assert_eq!(dbl_aug_4th.quality, Augmented(2));
-        assert_eq!(dbl_aug_4th.size, Fourth);
-        assert_eq!(dbl_aug_4th.octaves, 0);
+    #[test]
+    fn test_ops() {
+        assert_eq!(inv!(Perfect, Unison).unwrap() + 2, inv!(Major, Second).unwrap());
+        assert_eq!(inv!(Perfect, Unison).unwrap() - inv!(Major, Second).unwrap(), inv!(Major, Second).unwrap());
+        assert_eq!(inv!(Major, Third).unwrap() - inv!(Minor, Third).unwrap(), inv!(Minor, Second).unwrap());
+        assert_eq!(inv!(Major, Third).unwrap() + inv!(Minor, Third).unwrap(), inv!(Perfect, Fifth).unwrap());
+        assert_eq!(Interval::from(10) + inv!(Major, Second).unwrap(), inv!(Perfect, Unison, 1).unwrap());
+    }
 
-        let perf_8ve = Interval::from_str("P8").unwrap();
-        assert_eq!(perf_8ve.quality, Perfect);
-        assert_eq!(perf_8ve.size, Unison);
-        assert_eq!(perf_8ve.octaves, 1);
+    #[test]
+    fn test_inversion() {
+        let interval = inv!(Major, Second).unwrap();
+        assert_eq!(inv!(Minor, Seventh).unwrap(), interval.inverted());
 
-        let min_9th = Interval::from_str("m9").unwrap();
-        assert_eq!(min_9th.quality, Minor);
-        assert_eq!(min_9th.size, Second);
-        assert_eq!(min_9th.octaves, 1);
+        let interval = inv!(Augmented(1), Fourth).unwrap();
+        assert_eq!(inv!(Diminished(1), Fifth).unwrap(), interval.inverted());
 
-        let dim_13th = Interval::from_str("d13").unwrap();
-        assert_eq!(dim_13th.quality, Diminished(1));
-        assert_eq!(dim_13th.size, Sixth);
-        assert_eq!(dim_13th.octaves, 1);
+        let interval = inv!(Perfect, Fifth).unwrap();
+        assert_eq!(inv!(Perfect, Fourth).unwrap(), interval.inverted());
 
-        let perf_22nd = Interval::from_str("P22nd").unwrap();
-        assert_eq!(perf_22nd.quality, Perfect);
-        assert_eq!(perf_22nd.size, Unison);
-        assert_eq!(perf_22nd.octaves, 3);
+        let interval = inv!(Major, Sixth, 1).unwrap();
+        assert_eq!(inv!(Minor, Third, 1).unwrap(), interval.inverted());
     }
 }

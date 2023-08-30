@@ -1,12 +1,13 @@
 pub use IntervalQuality::*;
 
 pub mod utils;
+mod tests;
 
 /// A musical interval quality
 /// Diminished and augmented take a number to represent
 /// the number of diminished or augmented intervals. For example,
 /// `Diminished(2)` would be a double diminished interval.
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub enum IntervalQuality {
     Diminished(u8),
     Augmented(u8),
@@ -16,13 +17,17 @@ pub enum IntervalQuality {
 }
 
 impl IntervalQuality {
-    pub fn to_semitones(&self) -> i8 {
+    // Inverts the interval quality
+    // Diminished becomes augmented, augmented becomes diminished
+    // Minor becomes major, major becomes minor
+    // Perfect stays perfect
+    pub fn invert(&self) -> Self {
         match self {
-            Diminished(n) => -(*n as i8),
-            Augmented(n) => *n as i8,
-            Minor => -1,
-            Major => 0,
-            Perfect => 0,
+            Diminished(n) => Augmented(*n),
+            Augmented(n) => Diminished(*n),
+            Minor => Major,
+            Major => Minor,
+            Perfect => Perfect,
         }
     }
 }

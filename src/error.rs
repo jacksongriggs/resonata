@@ -1,3 +1,5 @@
+use std::error;
+
 use thiserror::Error;
 
 pub use IntervalError::*;
@@ -10,6 +12,10 @@ pub enum IntervalError {
     InvalidInterval,
     #[error("Invalid interval quality")]
     InvalidIntervalQuality,
+    #[error("Invalid diminished count")]
+    InvalidDiminishedCount,
+    #[error("Invalid augmented count")]
+    InvalidAugmentedCount,
     #[error("Invalid interval size")]
     InvalidIntervalSize,
     #[error("Invalid interval format")]
@@ -22,9 +28,11 @@ pub enum NoteError {
     InvalidNote,
     #[error("Invalid note name")]
     InvalidNoteName,
-    #[error("Invalid note format")]
+    #[error("Invalid accidental")]
     InvalidAccidental,
-    #[error("Invalid note format")]
+    #[error("Invalid accidental combination")]
+    InvalidAccidentalCombination,
+    #[error("Invalid octave")]
     InvalidOctave,
 }
 
@@ -59,5 +67,12 @@ macro_rules! err {
 macro_rules! nope {
     ($e:expr) => {
         return Err(ResonataError::from($e))
+    };
+}
+
+#[macro_export]
+macro_rules! yep {
+    ($e:expr) => {
+        return Ok($e)
     };
 }
