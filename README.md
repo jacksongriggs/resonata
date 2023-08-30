@@ -10,12 +10,6 @@ Add this to your `Cargo.toml`:
 resonata = "0.1.0"
 ```
 
-and this to your crate root:
-
-```rust
-extern crate resonata;
-```
-
 ## Example
 
 ```rust
