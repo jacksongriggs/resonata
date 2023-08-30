@@ -30,6 +30,18 @@ mod tests {
     }
 
     #[test]
+    fn test_from_str() {
+        assert_eq!(inv!(Perfect, Unison).unwrap(), "P1".parse::<Interval>().unwrap());
+        assert_eq!(inv!(Major, Second).unwrap(), "M2".parse::<Interval>().unwrap());
+        assert_eq!(inv!(Augmented(1), Fourth).unwrap(), "A4".parse::<Interval>().unwrap());
+        assert_eq!(inv!(Diminished(1), Fifth).unwrap(), "d5".parse::<Interval>().unwrap());
+        assert_eq!(inv!(Augmented(1), Fourth).unwrap(), "6".parse::<Interval>().unwrap());
+
+        let mut inv = inv!("2").unwrap();
+        inv += 2;
+    }
+
+    #[test]
     fn test_interval_macros() {
         assert_eq!(inv!(Perfect, Unison), Interval::build(Perfect, Unison, 0));
         assert_eq!(inv!(Perfect, Unison, 1), Interval::build(Perfect, Unison, 1));

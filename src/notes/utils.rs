@@ -1,6 +1,6 @@
-use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr, ops::{Add, Sub}};
+use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr, ops::{Add, Sub, AddAssign, SubAssign}};
 use regex::Regex;
-use crate::err;
+use crate::{err, Interval};
 use lazy_static::lazy_static;
 
 use super::*;
@@ -29,11 +29,23 @@ impl Add<u8> for Note {
     }
 }
 
+impl AddAssign<u8> for Note {
+    fn add_assign(&mut self, semitones: u8) {
+        *self = *self + semitones;
+    }
+}
+
 impl Sub<u8> for Note {
     type Output = Self;
     fn sub(self, semitones: u8) -> Self::Output {
         let number = std::cmp::max(u8::from(self) as i8 - semitones as i8, 0) as u8;
         Self::from(number)
+    }
+}
+
+impl SubAssign<u8> for Note {
+    fn sub_assign(&mut self, semitones: u8) {
+        *self = *self - semitones;
     }
 }
 
@@ -44,9 +56,9 @@ impl Sub for Note {
     }
 }
 
-impl Add<crate::Interval> for Note {
+impl Add<Interval> for Note {
     type Output = Option<Self>;
-    fn add(self, interval: crate::Interval) -> Self::Output {
+    fn add(self, interval: Interval) -> Self::Output {
         let number = u8::from(self) + u8::from(interval);
         if number > 127 {
             None
@@ -56,15 +68,27 @@ impl Add<crate::Interval> for Note {
     }
 }
 
-impl Sub<crate::Interval> for Note {
+impl AddAssign<Interval> for Note {
+    fn add_assign(&mut self, interval: Interval) {
+        *self = (*self + interval).unwrap();
+    }
+}
+
+impl Sub<Interval> for Note {
     type Output = Option<Self>;
-    fn sub(self, interval: crate::Interval) -> Self::Output {
+    fn sub(self, interval: Interval) -> Self::Output {
         let number = u8::from(self) as i8 - i8::from(interval);
         if number < 0 {
             None
         } else {
             Some(Self::from(number as u8))
         }
+    }
+}
+
+impl SubAssign<Interval> for Note {
+    fn sub_assign(&mut self, interval: Interval) {
+        *self = (*self - interval).unwrap();
     }
 }
 
@@ -88,10 +112,7 @@ impl FromStr for Note {
 
                 Ok(Self { name, accidental })
             }
-            None => {
-                eprintln!("Note: {}: {}", InvalidNoteName, s);
-                err!(InvalidNoteName)
-            }
+            None => err!(InvalidNoteName)
         }
     }
 }
@@ -132,11 +153,23 @@ impl Add<u8> for PitchedNote {
     }
 }
 
+impl AddAssign<u8> for PitchedNote {
+    fn add_assign(&mut self, semitones: u8) {
+        *self = *self + semitones;
+    }
+}
+
 impl Sub<u8> for PitchedNote {
     type Output = Self;
     fn sub(self, semitones: u8) -> Self::Output {
         let number = std::cmp::max(u8::from(self) as i8 - semitones as i8, 0) as u8;
         Self::from(number)
+    }
+}
+
+impl SubAssign<u8> for PitchedNote {
+    fn sub_assign(&mut self, semitones: u8) {
+        *self = *self - semitones;
     }
 }
 
@@ -147,9 +180,9 @@ impl Sub for PitchedNote {
     }
 }
 
-impl Add<crate::Interval> for PitchedNote {
+impl Add<Interval> for PitchedNote {
     type Output = Option<Self>;
-    fn add(self, interval: crate::Interval) -> Self::Output {
+    fn add(self, interval: Interval) -> Self::Output {
         let number = u8::from(self) + u8::from(interval);
         if number > 127 {
             None
@@ -159,15 +192,27 @@ impl Add<crate::Interval> for PitchedNote {
     }
 }
 
-impl Sub<crate::Interval> for PitchedNote {
+impl AddAssign<Interval> for PitchedNote {
+    fn add_assign(&mut self, interval: Interval) {
+        *self = (*self + interval).unwrap();
+    }
+}
+
+impl Sub<Interval> for PitchedNote {
     type Output = Option<Self>;
-    fn sub(self, interval: crate::Interval) -> Self::Output {
+    fn sub(self, interval: Interval) -> Self::Output {
         let number = u8::from(self) as i8 - i8::from(interval);
         if number < 0 {
             None
         } else {
             Some(Self::from(number as u8))
         }
+    }
+}
+
+impl SubAssign<Interval> for PitchedNote {
+    fn sub_assign(&mut self, interval: Interval) {
+        *self = (*self - interval).unwrap();
     }
 }
 
@@ -185,16 +230,12 @@ impl FromStr for PitchedNote {
                 let octave: i8 = cap[2].parse().unwrap_or(4);
         
                 if octave < -1 || octave > 9 {
-                    eprintln!("PitchedNote: {}: {}", InvalidOctave, s);
                     nope!(InvalidOctave);
                 }
         
                 Ok(Self { note, octave })
             }
-            None => {
-                eprintln!("PitchedNote: {}: {}", InvalidNoteName, s);
-                nope!(InvalidNoteName)
-            }
+            None => nope!(InvalidNoteName)
         }
     }
 }

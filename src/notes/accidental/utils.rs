@@ -1,6 +1,5 @@
-use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr, ops::{Add, Sub}};
-use super::*;
-use crate::error::NoteError::{self, *};
+use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr, ops::{Add, Sub, AddAssign, SubAssign}};
+use super::super::*;
 
 impl From<i8> for Accidental {
     fn from(value: i8) -> Self {
@@ -32,6 +31,12 @@ impl Add<i8> for Accidental {
     }
 }
 
+impl AddAssign<i8> for Accidental {
+    fn add_assign(&mut self, amount: i8) {
+        *self = *self + amount;
+    }
+}
+
 impl Sub<i8> for Accidental {
     type Output = Self;
     
@@ -40,8 +45,14 @@ impl Sub<i8> for Accidental {
     }
 }
 
+impl SubAssign<i8> for Accidental {
+    fn sub_assign(&mut self, amount: i8) {
+        *self = *self - amount;
+    }
+}
+
 impl FromStr for Accidental {
-    type Err = NoteError;
+    type Err = ResonataError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
 
         let mut sharp_count = 0;
@@ -56,20 +67,15 @@ impl FromStr for Accidental {
                     if sharp_count == 0 && flat_count == 0 {
                         return Ok(Natural)
                     } else {
-                        eprintln!("Accidental: {} {}", InvalidAccidentalCombination, s);
-                        return Err(InvalidAccidentalCombination)
+                        nope!(InvalidAccidentalCombination)
                     }
                 },
-                _ => {
-                    eprintln!("Accidental: Invalid accidental: {}", s);
-                    return Err(InvalidAccidental)
-                }
+                _ => nope!(InvalidAccidental)
             }
         }
     
         if sharp_count > 0 && flat_count > 0 {
-            eprintln!("Accidental: {} {}", InvalidAccidentalCombination, s);
-            Err(InvalidAccidentalCombination)
+            nope!(InvalidAccidentalCombination)
         } else if flat_count > 0 {
             Ok(Flat(flat_count))
         } else {

@@ -1,4 +1,4 @@
-use std::{fmt::{self, Display, Formatter, Debug}, ops::Add, ops::Sub, str::FromStr};
+use std::{fmt::{self, Display, Formatter, Debug}, ops::Add, ops::{Sub, AddAssign, SubAssign}, str::FromStr};
 use super::super::*;
 
 impl From<u8> for IntervalSize {
@@ -38,11 +38,23 @@ impl Add<u8> for IntervalSize {
     }
 }
 
+impl AddAssign<u8> for IntervalSize {
+    fn add_assign(&mut self, n: u8) {
+        *self = Self::from(u8::from(*self) + n % 7)
+    }
+}
+
 impl Sub<u8> for IntervalSize {
     type Output = Self;
 
     fn sub(self, n: u8) -> Self::Output {
         Self::from((u8::from(self) as i8 - n as i8).abs() as u8 % 7)
+    }
+}
+
+impl SubAssign<u8> for IntervalSize {
+    fn sub_assign(&mut self, n: u8) {
+        *self = Self::from((u8::from(*self) as i8 - n as i8).abs() as u8 % 7)
     }
 }
 
@@ -54,11 +66,23 @@ impl Add for IntervalSize {
     }
 }
 
+impl AddAssign for IntervalSize {
+    fn add_assign(&mut self, other: Self) {
+        *self = Self::from(u8::from(*self) + u8::from(other))
+    }
+}
+
 impl Sub for IntervalSize {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
         Self::from((u8::from(self) as i8 - u8::from(other) as i8).abs() as u8)
+    }
+}
+
+impl SubAssign for IntervalSize {
+    fn sub_assign(&mut self, other: Self) {
+        *self = Self::from((u8::from(*self) as i8 - u8::from(other) as i8).abs() as u8)
     }
 }
 
@@ -91,10 +115,7 @@ impl FromStr for IntervalSize {
             "fifth" => Ok(Fifth),
             "sixth" => Ok(Sixth),
             "seventh" => Ok(Seventh),
-            _ => {
-                eprintln!("IntervalSize: {}: {}", InvalidIntervalSize, s);
-                nope!(InvalidIntervalSize)
-            }
+            _ => nope!(InvalidIntervalSize)
         }
     }
 }

@@ -1,6 +1,7 @@
-use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr, ops::{Add, Sub}, cmp};
+use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr, ops::{Add, Sub, AddAssign, SubAssign}, cmp};
 use regex::Regex;
 use super::*;
+use lazy_static::lazy_static;
 
 impl From<u8> for Interval {
     fn from(value: u8) -> Self {
@@ -81,11 +82,37 @@ impl Add<i8> for Interval {
     }
 }
 
+impl AddAssign<i8> for Interval {
+    fn add_assign(&mut self, rhs: i8) {
+        *self = *self + rhs;
+    }
+}
+
+impl Sub<Interval> for i8 {
+    type Output = Interval;
+
+    fn sub(self, rhs: Interval) -> Self::Output {
+        Interval::from(self - i8::from(rhs))
+    }
+}
+
+impl SubAssign<Interval> for i8 {
+    fn sub_assign(&mut self, rhs: Interval) {
+        *self = *self - i8::from(rhs);
+    }
+}
+
 impl Sub<i8> for Interval {
     type Output = Self;
 
     fn sub(self, rhs: i8) -> Self::Output {
         Self::from(i8::from(self) - rhs)
+    }
+}
+
+impl SubAssign<i8> for Interval {
+    fn sub_assign(&mut self, rhs: i8) {
+        *self = *self - rhs;
     }
 }
 
@@ -97,11 +124,23 @@ impl Add for Interval {
     }
 }
 
+impl AddAssign for Interval {
+    fn add_assign(&mut self, other: Self) {
+        *self = *self + other;
+    }
+}
+
 impl Sub for Interval {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self {
         Self::from((i8::from(self) - i8::from(other)).abs())
+    }
+}
+
+impl SubAssign for Interval {
+    fn sub_assign(&mut self, other: Self) {
+        *self = *self - other;
     }
 }
 
@@ -125,11 +164,18 @@ impl cmp::Ord for Interval {
     }
 }
 
+lazy_static! {
+    static ref INTERVAL_QUALITY_REGEX: Regex = Regex::new(r"^(?P<quality>[#x𝄪b♯♯♭♭♮mMpPaAdD\+-]*)(?P<size>\d+)(?:th)?$").unwrap();
+}
+
 impl FromStr for Interval {
     type Err = ResonataError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let re = Regex::new(r"^(?P<quality>[#x𝄪b♯♯♭♭♮+-mMpPaAdD\+-]*)(?P<size>\d+)(?:th)?").unwrap();
-        if let Some(cap) = re.captures(s) {
+        if s.chars().all(char::is_numeric) {
+            let size = s.parse::<u8>().map_err(|_| InvalidInterval)?;
+            return Ok(Interval::from(size));
+        }
+        if let Some(cap) = INTERVAL_QUALITY_REGEX.captures(s) {
             let quality_expr = cap.name("quality").map_or("", |x| x.as_str());
             let size_expr = cap.name("size").map_or("", |x| x.as_str());
             let quality = IntervalQuality::from_str(quality_expr)?;
@@ -139,7 +185,6 @@ impl FromStr for Interval {
             let size = IntervalSize::from_str(&effective_size.to_string())?;
             Interval::build(quality, size, octaves)
         } else {
-            eprintln!("Interval: {}: {}", InvalidIntervalFormat, s);
             nope!(InvalidIntervalFormat)
         }
     }

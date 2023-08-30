@@ -27,6 +27,21 @@ mod tests {
     }
 
     #[test]
+    fn test_from_str() {
+        let scale = Scale::from_str("2, 2, 1, 2, 2, 2, 1").unwrap();
+        let expected_scale = Scale::major();
+        assert_eq!(scale, expected_scale);
+
+        let scale = Scale::from_str("M2, M2, m2, M2, M2, M2, m2").unwrap();
+        let expected_scale = Scale::major();
+        assert_eq!(scale, expected_scale);
+
+        let scale = Scale::from_str("C, D, E, F, G, A, B").unwrap();
+        let expected_scale = Scale::major();
+        assert_eq!(scale, expected_scale);
+    }
+
+    #[test]
     fn test_from_notes() {
         let notes = vec![
             Note::from(60),

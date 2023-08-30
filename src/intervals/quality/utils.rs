@@ -1,4 +1,4 @@
-use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr, ops::{AddAssign, Add}};
+use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr};
 use regex::Regex;
 use super::super::*;
 
@@ -45,69 +45,23 @@ impl FromStr for IntervalQuality {
         let re = Regex::new(r"^(?P<quality>[#x𝄪b♯♯♭♭♮+-mMpPaAdD\+-]*)").unwrap();
         if let Some(cap) = re.captures(s) {
             let quality_expr = cap.name("quality").map_or("", |x| x.as_str());
-            let mut quality = IntervalQuality::Perfect;
-            let mut count = 0;
+            let mut quality = IntervalQuality::Major;
             for c in quality_expr.chars() {
                 match c {
-                    'm' => {
-                        if count > 0 {
-                            eprintln!("IntervalQuality: {}: {}", InvalidIntervalQuality, s);
-                            nope!(InvalidIntervalQuality)
-                        } else {
-                            quality = IntervalQuality::Minor;
-                            count += 1;
-                        }
-                    },
-                    'M' => {
-                        if count > 0 {
-                            eprintln!("IntervalQuality: {}: {}", InvalidIntervalQuality, s);
-                            nope!(InvalidIntervalQuality)
-                        } else {
-                            quality = IntervalQuality::Major;
-                            count += 1;
-                        }
-                    },
-                    'P' => {
-                        if count > 0 {
-                            eprintln!("IntervalQuality: {}: {}", InvalidIntervalQuality, s);
-                            nope!(InvalidIntervalQuality)
-                        } else {
-                            quality = IntervalQuality::Perfect;
-                            count += 1;
-                        }
-                    },
-                    'A' => {
-                        if count > 0 {
-                            eprintln!("IntervalQuality: {}: {}", InvalidIntervalQuality, s);
-                            nope!(InvalidIntervalQuality)
-                        } else {
-                            quality = IntervalQuality::Augmented(1);
-                            count += 1;
-                        }
-                    },
-                    'd' => {
-                        if count > 0 {
-                            eprintln!("IntervalQuality: {}: {}", InvalidIntervalQuality, s);
-                            nope!(InvalidIntervalQuality)
-                        } else {
-                            quality = IntervalQuality::Diminished(1);
-                            count += 1;
-                        }
-                    },
-                    _ => {
-                        eprintln!("IntervalQuality: {}: {}", InvalidIntervalQuality, s);
-                        nope!(InvalidIntervalQuality)
-                    }
+                    'm' => quality = IntervalQuality::Minor,
+                    'M' => quality = IntervalQuality::Major,
+                    'P' => quality = IntervalQuality::Perfect,
+                    'A' => quality = IntervalQuality::Augmented(1),
+                    'd' => quality = IntervalQuality::Diminished(1),
+                    _ => nope!(InvalidIntervalQuality)
                 }
             }
             Ok(quality)
         } else {
-            eprintln!("IntervalQuality: {}: {}", InvalidIntervalQuality, s);
             err!(InvalidIntervalQuality)
         }
     }
 }
-
 
 impl Display for IntervalQuality {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {

@@ -1,6 +1,5 @@
-use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr, ops::{Add, Sub}};
-use super::NoteName::{self, *};
-use crate::error::NoteError::{self, *};
+use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr, ops::{Add, Sub, AddAssign, SubAssign}};
+use super::super::*;
 
 impl From<u8> for NoteName {
     fn from(value: u8) -> Self {
@@ -39,6 +38,12 @@ impl Add<u8> for NoteName {
     }
 }
 
+impl AddAssign<u8> for NoteName {
+    fn add_assign(&mut self, n: u8) {
+        *self = Self::from(u8::from(*self) + n % 6)
+    }
+}
+
 impl Sub<u8> for NoteName {
     type Output = Self;
 
@@ -47,8 +52,14 @@ impl Sub<u8> for NoteName {
     }
 }
 
+impl SubAssign<u8> for NoteName {
+    fn sub_assign(&mut self, n: u8) {
+        *self = Self::from((u8::from(*self) as i8 - n as i8).abs() as u8 % 6)
+    }
+}
+
 impl FromStr for NoteName {
-    type Err = NoteError;
+    type Err = ResonataError;
     
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_ascii_lowercase().as_str() {
@@ -59,10 +70,7 @@ impl FromStr for NoteName {
             "g" => Ok(G),
             "a" => Ok(A),
             "b" => Ok(B),
-            _ => {
-                eprintln!("NoteName: {}: {}", InvalidNoteName, s);
-                Err(InvalidNoteName)
-            }
+            _ => nope!(InvalidNoteName)
         }
     }
 }
