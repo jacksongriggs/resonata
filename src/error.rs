@@ -1,5 +1,3 @@
-use std::error;
-
 use thiserror::Error;
 
 pub use IntervalError::*;
