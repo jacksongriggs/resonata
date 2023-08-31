@@ -1,9 +1,12 @@
-use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr};
 use super::*;
+use std::{
+    fmt::{self, Debug, Display, Formatter},
+    str::FromStr,
+};
 
 impl FromStr for NoteName {
     type Err = ResonataError;
-    
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_ascii_lowercase().as_str() {
             "c" => Ok(C),
@@ -13,7 +16,7 @@ impl FromStr for NoteName {
             "g" => Ok(G),
             "a" => Ok(A),
             "b" => Ok(B),
-            _ => nope!(InvalidNoteName)
+            _ => nope!(InvalidNoteName),
         }
     }
 }
@@ -30,11 +33,11 @@ impl Display for NoteName {
             B => "B",
         };
         write!(f, "{}", token)
-    }   
+    }
 }
 
 impl Debug for NoteName {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.to_string())
-    }   
+    }
 }

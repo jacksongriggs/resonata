@@ -1,8 +1,11 @@
-use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr};
+use super::*;
+use crate::err;
 use lazy_static::lazy_static;
 use regex::Regex;
-use crate::err;
-use super::*;
+use std::{
+    fmt::{self, Debug, Display, Formatter},
+    str::FromStr,
+};
 
 lazy_static! {
     static ref NOTE_RE: Regex = Regex::new("^([A-Ga-g])([#x𝄪b♯♯♭♭♮]*)$").unwrap();
@@ -24,7 +27,7 @@ impl FromStr for Note {
 
                 Ok(Self { name, accidental })
             }
-            None => err!(InvalidNoteName)
+            None => err!(InvalidNoteName),
         }
     }
 }
@@ -55,14 +58,14 @@ impl FromStr for PitchedNote {
             Some(cap) => {
                 let note = Note::from_str(&cap[1])?;
                 let octave: i8 = cap[2].parse().unwrap_or(4);
-        
+
                 if octave < -1 || octave > 9 {
                     nope!(InvalidOctave);
                 }
-        
+
                 Ok(Self { note, octave })
             }
-            None => nope!(InvalidNoteName)
+            None => nope!(InvalidNoteName),
         }
     }
 }

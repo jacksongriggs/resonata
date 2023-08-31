@@ -15,7 +15,6 @@ macro_rules! note {
     };
 }
 
-
 /// A macro to create a pitched note.
 #[macro_export]
 macro_rules! pnote {

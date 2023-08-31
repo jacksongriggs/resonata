@@ -14,10 +14,17 @@ pub enum Accidental {
 }
 
 impl Accidental {
-    pub fn from_chromatic_scale_degree(number: u8) -> Self {
+    pub fn from_chromatic_scale_degree(number: i32) -> Self {
+        let sign = number.signum();
         match number % 12 {
             0 | 2 | 4 | 5 | 7 | 9 | 11 => Natural,
-            1 | 3 | 6 | 8 | 10 => Sharp(1),
+            1 | 3 | 6 | 8 | 10 => {
+                match sign {
+                    -1 => Flat(1),
+                    1 => Sharp(1),
+                    _ => unreachable!(),
+                }
+            }
             _ => unreachable!(),
         }
     }

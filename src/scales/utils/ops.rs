@@ -1,5 +1,5 @@
-use std::ops::{Add, AddAssign};
 use super::*;
+use std::ops::{Add, AddAssign};
 
 impl Add for Scale {
     type Output = Self;

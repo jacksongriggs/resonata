@@ -4,8 +4,8 @@ mod fmt;
 mod ops;
 mod tests;
 
-impl From<i8> for Accidental {
-    fn from(value: i8) -> Self {
+impl From<i32> for Accidental {
+    fn from(value: i32) -> Self {
         if value < 0 {
             Flat(value.abs() as u8)
         } else if value == 0 {
@@ -16,12 +16,12 @@ impl From<i8> for Accidental {
     }
 }
 
-impl From<Accidental> for i8 {
+impl From<Accidental> for i32 {
     fn from(acc: Accidental) -> Self {
         match acc {
-            Flat(n) => -(n as i8),
+            Flat(n) => -(n as i32),
             Natural => 0,
-            Sharp(n) => n as i8,
+            Sharp(n) => n as i32,
         }
     }
 }

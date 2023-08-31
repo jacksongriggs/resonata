@@ -1,20 +1,25 @@
-use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr,};
-use crate::error::IntervalError;
 use super::*;
+use crate::error::IntervalError;
+use std::{
+    fmt::{self, Debug, Display, Formatter},
+    str::FromStr,
+};
 
 impl FromStr for Scale {
     type Err = ResonataError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // First attempt to parse as string of intervals\
-        if let Ok (intervals) = s
+        if let Ok(intervals) = s
             .split(", ")
-            .map(|interval| 
-                interval.parse::<Interval>()
-                    .map_err(|_| IntervalError::InvalidInterval))
-            .collect::<Result<Vec<Interval>, IntervalError>>() {
+            .map(|interval| {
+                interval
+                    .parse::<Interval>()
+                    .map_err(|_| IntervalError::InvalidInterval)
+            })
+            .collect::<Result<Vec<Interval>, IntervalError>>()
+        {
             return Ok(Scale { intervals });
-        
         }
 
         // If that fails, try parsing as a string of note names and compute the intervals
@@ -30,13 +35,13 @@ impl FromStr for Scale {
             }
             _ => nope!(InvalidScale),
         }
-
     }
 }
 
 impl Display for Scale {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let intervals = self.intervals
+        let intervals = self
+            .intervals
             .iter()
             .map(|interval| interval.to_string())
             .collect::<Vec<String>>()
@@ -48,5 +53,5 @@ impl Display for Scale {
 impl Debug for Scale {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.to_string())
-    }   
+    }
 }

@@ -1,15 +1,16 @@
-pub use name::NoteName::{self, *};
-pub use accidental::Accidental::{self, *};
 pub use crate::{
-    nope,
     error::{
         NoteError::{self, *},
-        ResonataError}
+        ResonataError,
+    },
+    nope,
 };
+pub use accidental::Accidental::{self, *};
+pub use name::NoteName::{self, *};
 
-pub mod name;
 pub mod accidental;
 pub mod macros;
+pub mod name;
 mod utils;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -24,7 +25,10 @@ impl Note {
     }
 
     pub fn from_note_name(name: NoteName) -> Self {
-        Note { name, accidental: Natural }
+        Note {
+            name,
+            accidental: Natural,
+        }
     }
 }
 
@@ -43,15 +47,18 @@ impl PitchedNote {
     /// Octave numbers outside of the range -1 to 9 will be clamped to the nearest valid number.
     pub fn build(note: Note, octave: i8) -> Self {
         let octave = std::cmp::min(std::cmp::max(octave, -1), 9);
-        
-        PitchedNote { 
-            note,
-            octave,
-        }
+
+        PitchedNote { note, octave }
     }
 
     pub fn from_note_name_and_octave(name: NoteName, octave: i8) -> Self {
-        Self::build(Note { name, accidental: Natural }, octave)
+        Self::build(
+            Note {
+                name,
+                accidental: Natural,
+            },
+            octave,
+        )
     }
 
     /// Returns the note name of the note

@@ -1,10 +1,13 @@
-use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr};
-use regex::Regex;
 use super::*;
+use regex::Regex;
+use std::{
+    fmt::{self, Debug, Display, Formatter},
+    str::FromStr,
+};
 
 impl FromStr for IntervalQuality {
     type Err = ResonataError;
-    
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let re = Regex::new(r"^(?P<quality>[#x𝄪b♯♯♭♭♮+-mMpPaAdD\+-]*)").unwrap();
         if let Some(cap) = re.captures(s) {
@@ -17,7 +20,7 @@ impl FromStr for IntervalQuality {
                     'P' => quality = IntervalQuality::Perfect,
                     'A' => quality = IntervalQuality::Augmented(1),
                     'd' => quality = IntervalQuality::Diminished(1),
-                    _ => nope!(InvalidIntervalQuality)
+                    _ => nope!(InvalidIntervalQuality),
                 }
             }
             Ok(quality)

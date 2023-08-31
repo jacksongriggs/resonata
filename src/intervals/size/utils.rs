@@ -1,7 +1,7 @@
 use super::super::*;
 
-mod ops;
 mod fmt;
+mod ops;
 mod tests;
 
 impl From<u8> for IntervalSize {

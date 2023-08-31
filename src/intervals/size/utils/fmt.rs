@@ -1,5 +1,8 @@
-use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr};
 use crate::yep;
+use std::{
+    fmt::{self, Debug, Display, Formatter},
+    str::FromStr,
+};
 
 use super::*;
 
@@ -19,10 +22,11 @@ impl FromStr for IntervalSize {
             .trim_end_matches("rd")
             .trim_end_matches("th")
             .trim_end_matches("ve")
-            .parse::<u8>() {
+            .parse::<u8>()
+        {
             yep!(IntervalSize::from(number - 1))
         }
-        
+
         // if str is a string, match against the string and return the corresponding IntervalSize
         match s.to_lowercase().as_str() {
             "unison" | "u" => Ok(Unison),
@@ -32,7 +36,7 @@ impl FromStr for IntervalSize {
             "fifth" => Ok(Fifth),
             "sixth" => Ok(Sixth),
             "seventh" => Ok(Seventh),
-            _ => nope!(InvalidIntervalSize)
+            _ => nope!(InvalidIntervalSize),
         }
     }
 }

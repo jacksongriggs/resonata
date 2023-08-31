@@ -4,13 +4,19 @@ pub mod utils;
 
 /// A musical note name
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-pub enum NoteName { 
-    C, D, E, F, G, A, B, 
+pub enum NoteName {
+    C,
+    D,
+    E,
+    F,
+    G,
+    A,
+    B,
 }
 
 impl NoteName {
     /// Returns the chromatic number of the note name, based on the C major scale
-    pub fn to_chromatic_scale_degree (&self) -> u8 {
+    pub fn to_chromatic_scale_degree(&self) -> u8 {
         match self {
             C => 0,
             D => 2,
@@ -22,7 +28,7 @@ impl NoteName {
         }
     }
 
-    pub fn from_chromatic_scale_degree (number: u8) -> Self {
+    pub fn from_chromatic_scale_degree(number: u8) -> Self {
         match number % 12 {
             0 => C,
             1 => C,
@@ -40,4 +46,3 @@ impl NoteName {
         }
     }
 }
-

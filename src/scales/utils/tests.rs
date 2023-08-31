@@ -1,7 +1,10 @@
 #[cfg(test)]
 mod tests {
     use super::super::*;
-    use crate::{*, notes::{Accidental::*, NoteName::*}};
+    use crate::{
+        notes::{Accidental::*, NoteName::*},
+        *,
+    };
 
     #[test]
     fn test_from_steps() {
@@ -71,12 +74,7 @@ mod tests {
         assert_eq!(scale.to_notes(note!(C)), expected_notes);
 
         let scale = scale!("2, 2, 2, 2").unwrap();
-        let expected_notes = vec![
-            note!(C),
-            note!(D),
-            note!(E),
-            note!(F, Sharp(1)),
-        ];
+        let expected_notes = vec![note!(C), note!(D), note!(E), note!(F, Sharp(1))];
         assert_eq!(scale.to_notes(note!(C)), expected_notes);
 
         let scale = scale.rotated(2);
@@ -90,15 +88,18 @@ mod tests {
 
     #[test]
     fn test_scale_types() {
-        assert_eq!(vec![
-            note!(C), 
-            note!(D), 
-            note!(E), 
-            note!(F), 
-            note!(G), 
-            note!(A), 
-            note!(B)], 
-            Scale::major().to_notes(note!(C)));
+        assert_eq!(
+            vec![
+                note!(C),
+                note!(D),
+                note!(E),
+                note!(F),
+                note!(G),
+                note!(A),
+                note!(B)
+            ],
+            Scale::major().to_notes(note!(C))
+        );
         assert_eq!(Scale::from_steps(vec![2, 1, 2, 2, 1, 2, 2]), Scale::minor());
         assert_eq!(Scale::from_steps(vec![1; 12]), Scale::chromatic());
     }
@@ -114,6 +115,5 @@ mod tests {
     fn test_macros() {
         assert_eq!(Scale::major(), scale!(Major, 0));
         assert_eq!(Scale::minor(), scale!(Minor, 0));
-        
     }
 }

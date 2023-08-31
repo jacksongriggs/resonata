@@ -1,8 +1,8 @@
 use super::*;
 
 mod cmp;
-mod ops;
 mod fmt;
+mod ops;
 mod tests;
 
 impl From<u8> for Interval {
@@ -21,7 +21,7 @@ impl From<u8> for Interval {
             9 => (Major, Sixth),
             10 => (Minor, Seventh),
             11 => (Major, Seventh),
-            _ => unreachable!("Modulo 12 should never be outside of 0-11")
+            _ => unreachable!("Modulo 12 should never be outside of 0-11"),
         };
 
         let octaves = (value / 12) as u8;
@@ -44,7 +44,7 @@ impl From<Interval> for u8 {
             Diminished(n) => match interval.size {
                 Unison | Fourth | Fifth => value - n,
                 _ => value - n - 1,
-            }
+            },
         };
 
         (semitones + interval.octaves * 12) % 127

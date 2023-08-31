@@ -1,12 +1,16 @@
-use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr};
+use crate::yep;
 use lazy_static::lazy_static;
 use regex::Regex;
-use crate::yep;
+use std::{
+    fmt::{self, Debug, Display, Formatter},
+    str::FromStr,
+};
 
 use super::*;
 
 lazy_static! {
-    static ref INTERVAL_QUALITY_REGEX: Regex = Regex::new(r"^(?P<quality>[#x𝄪b♯♯♭♭♮mMpPaAdD\+-]*)(?P<size>\d+)(?:th)?$").unwrap();
+    static ref INTERVAL_QUALITY_REGEX: Regex =
+        Regex::new(r"^(?P<quality>[#x𝄪b♯♯♭♭♮mMpPaAdD\+-]*)(?P<size>\d+)(?:th)?$").unwrap();
 }
 
 impl FromStr for Interval {

@@ -21,12 +21,12 @@ impl IntervalSize {
     /// For example, a third has 4 diatonic semitones (C - E)
     pub fn to_diatonic_semitones(&self) -> u8 {
         match self {
-            Unison => 0, // Perfect = 0, Augmented = 1, Diminished = 1
-            Second => 2, // Major = 2, Minor = 1, Augmented = 3, Diminished = 0
-            Third => 4, // Major = 4, Minor = 3, Augmented = 5, Diminished = 2
-            Fourth => 5, // Perfect = 5, Augmented = 6, Diminished = 4
-            Fifth => 7, // Perfect = 7, Augmented = 8, Diminished = 6
-            Sixth => 9, // Major = 9, Minor = 8, Augmented = 10, Diminished = 7
+            Unison => 0,   // Perfect = 0, Augmented = 1, Diminished = 1
+            Second => 2,   // Major = 2, Minor = 1, Augmented = 3, Diminished = 0
+            Third => 4,    // Major = 4, Minor = 3, Augmented = 5, Diminished = 2
+            Fourth => 5,   // Perfect = 5, Augmented = 6, Diminished = 4
+            Fifth => 7,    // Perfect = 7, Augmented = 8, Diminished = 6
+            Sixth => 9,    // Major = 9, Minor = 8, Augmented = 10, Diminished = 7
             Seventh => 11, // Major = 11, Minor = 10, Augmented = 12, Diminished = 9
         }
     }

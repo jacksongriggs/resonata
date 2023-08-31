@@ -1,24 +1,22 @@
-pub use types::ScaleType::*;
 pub use crate::{
-    Note,
-    PitchedNote,
-    Interval, 
-    nope,
     error::{
-        ScaleError::{self, *}, 
-        ResonataError}
+        ResonataError,
+        ScaleError::{self, *},
+    },
+    nope, Interval, Note, PitchedNote,
 };
+pub use types::ScaleType::*;
 
-pub mod types;
 pub mod macros;
+pub mod types;
 mod utils;
 
 /// A musical scale
 /// Scale are represented by an optional root note and a list of intervals
-/// 
+///
 /// Intervals are relative to the root note, so a major scale would be
 /// [Unison, MajorSecond, MajorThird, PerfectFourth, PerfectFifth, MajorSixth, MajorSeventh]
-/// 
+///
 /// A macro is provided to make creating scales easier:
 /// scale!(note scale_type)
 /// scale!(scale_type)
@@ -82,7 +80,7 @@ impl Scale {
     pub fn chromatic() -> Self {
         Self::from_steps(Chromatic.as_steps())
     }
-    
+
     /// Creates a scale from a list of steps
     /// Steps are relative to the previous note
     /// For example, a major scale would be [2, 2, 1, 2, 2, 2, 1]
@@ -112,20 +110,18 @@ impl Scale {
         if notes.len() == 0 {
             return Self {
                 intervals: Vec::new(),
-            }
+            };
         }
-        
+
         notes.sort();
-        
+
         let mut intervals = Vec::new();
         let root = notes.remove(0);
         for note in notes {
             intervals.push(root - note);
         }
-        
-        Self {
-            intervals,
-        }
+
+        Self { intervals }
     }
 
     /// Returns the notes of the scale from the given root note
@@ -138,7 +134,7 @@ impl Scale {
         }
         notes
     }
-    
+
     /// Rotates the scale by n steps in the given direction
     /// The root note is retained, so for example rotating a major scale up by 1 step
     /// will result in a dorian scale

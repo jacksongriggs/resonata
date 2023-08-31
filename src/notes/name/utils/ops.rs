@@ -1,5 +1,5 @@
-use std::ops::{Add, Sub, AddAssign, SubAssign};
 use super::*;
+use std::ops::{Add, AddAssign, Sub, SubAssign};
 
 impl Add<u8> for NoteName {
     type Output = Self;

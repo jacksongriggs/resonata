@@ -1,7 +1,7 @@
 use super::super::*;
 
-mod ops;
 mod fmt;
+mod ops;
 
 impl From<u8> for NoteName {
     fn from(value: u8) -> Self {

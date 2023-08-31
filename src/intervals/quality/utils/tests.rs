@@ -1,13 +1,11 @@
-
 #[cfg(test)]
 mod tests {
-    use crate::*;
     use crate::intervals::quality::IntervalQuality;
+    use crate::*;
     use IntervalQuality::*;
 
     #[test]
     fn test_invert() {
-        
         assert_eq!(Diminished(1).invert(), Augmented(1));
         assert_eq!(Augmented(1).invert(), Diminished(1));
         assert_eq!(Minor.invert(), Major);

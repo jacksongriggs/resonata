@@ -1,4 +1,7 @@
-use std::{fmt::{self, Display, Formatter}, vec};
+use std::{
+    fmt::{self, Display, Formatter},
+    vec,
+};
 pub use ScaleType::*;
 
 /// A non-exhaustive list of musical scales

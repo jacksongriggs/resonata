@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use crate::*;
     use crate::intervals::size::IntervalSize;
+    use crate::*;
     use IntervalSize::*;
 
     #[test]

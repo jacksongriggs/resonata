@@ -1,6 +1,6 @@
-use std::ops::{Add, Sub, AddAssign, SubAssign};
-use crate::Interval;
 use super::*;
+use crate::Interval;
+use std::ops::{Add, AddAssign, Sub, SubAssign};
 
 //===========[Note: Add]=========================================================
 impl Add<u8> for Note {
@@ -90,7 +90,6 @@ impl AddAssign<u8> for PitchedNote {
     }
 }
 
-
 impl AddAssign<Interval> for PitchedNote {
     fn add_assign(&mut self, rhs: Interval) {
         *self = *self + rhs;
@@ -109,7 +108,9 @@ impl Sub<u8> for PitchedNote {
 impl Sub for PitchedNote {
     type Output = Interval;
     fn sub(self, rhs: Self) -> Self::Output {
-        Interval::from(u8::from(self) as i8 - u8::from(rhs) as i8)
+        let self_value = u8::from(self) as i8;
+        let rhs_value = u8::from(rhs) as i8;
+        Interval::from(self_value - rhs_value)
     }
 }
 
