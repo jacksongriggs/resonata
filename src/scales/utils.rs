@@ -1,6 +1,22 @@
-use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr};
+use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr, ops::{Add, AddAssign}};
 use crate::error::IntervalError;
 use super::*;
+
+impl Add for Scale {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut scale = self;
+        scale += rhs;
+        scale
+    }
+}
+
+impl AddAssign for Scale {
+    fn add_assign(&mut self, rhs: Self) {
+        self.intervals.extend(rhs.intervals);
+    }
+}
 
 impl FromStr for Scale {
     type Err = ResonataError;

@@ -60,11 +60,26 @@ mod tests {
 
     #[test]
     fn test_ops() {
+        // test standard interval sizes
         assert_eq!(inv!(Perfect, Unison).unwrap() + 2, inv!(Major, Second).unwrap());
         assert_eq!(inv!(Perfect, Unison).unwrap() - inv!(Major, Second).unwrap(), inv!(Major, Second).unwrap());
         assert_eq!(inv!(Major, Third).unwrap() - inv!(Minor, Third).unwrap(), inv!(Minor, Second).unwrap());
         assert_eq!(inv!(Major, Third).unwrap() + inv!(Minor, Third).unwrap(), inv!(Perfect, Fifth).unwrap());
         assert_eq!(Interval::from(10) + inv!(Major, Second).unwrap(), inv!(Perfect, Unison, 1).unwrap());
+
+        // test max interval size
+        let mut interval = inv!(Perfect, Unison).unwrap();
+        interval += 127;
+        assert_eq!(interval, inv!(Perfect, Unison).unwrap());
+        interval += 1;
+        assert_eq!(interval, inv!(Minor, Second).unwrap());
+
+        // test min interval size
+        let mut interval = inv!(Perfect, Unison).unwrap();
+        interval -= 127;
+        assert_eq!(interval, inv!(Perfect, Unison).unwrap());
+        interval -= 1;
+        assert_eq!(interval, inv!(Minor, Second).unwrap());
     }
 
     #[test]

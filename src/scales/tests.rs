@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use super::super::*;
-    use crate::{*, notes::NoteName::*};
+    use crate::{*, notes::{Accidental::*, NoteName::*}};
 
     #[test]
     fn test_from_steps() {
@@ -69,7 +69,23 @@ mod tests {
             Note::from(71),
         ];
         assert_eq!(scale.to_notes(note!(C)), expected_notes);
-        println!("{}", scale);
+
+        let scale = scale!("2, 2, 2, 2").unwrap();
+        let expected_notes = vec![
+            note!(C),
+            note!(D),
+            note!(E),
+            note!(F, Sharp(1)),
+        ];
+        assert_eq!(scale.to_notes(note!(C)), expected_notes);
+
+        let scale = scale.rotated(2);
+        let expected_notes = vec![
+            note!(E),
+            note!(F, Sharp(1)),
+            note!(G, Sharp(1)),
+            note!(A, Sharp(1)),
+        ];
     }
 
     #[test]

@@ -5,9 +5,8 @@ use lazy_static::lazy_static;
 
 impl From<u8> for Interval {
     fn from(value: u8) -> Self {
-        let semitones = std::cmp::min(value, 127);
-
-        let (quality, size) = match semitones % 12 {
+        let value = value % 127;
+        let (quality, size) = match value % 12 {
             0 => (Perfect, Unison),
             1 => (Minor, Second),
             2 => (Major, Second),
@@ -23,7 +22,7 @@ impl From<u8> for Interval {
             _ => unreachable!("Modulo 12 should never be outside of 0-11")
         };
 
-        let octaves = (semitones / 12) as u8;
+        let octaves = (value / 12) as u8;
 
         Interval {
             quality,
@@ -34,25 +33,31 @@ impl From<u8> for Interval {
 }
 
 impl From<Interval> for u8 {
-    fn from(value: Interval) -> Self {
-        let semitones = value.size.to_diatonic_semitones();
-        let semitones = match value.quality {
-            Perfect | Major => semitones,
-            Minor => semitones - 1,
-            Augmented(n) => semitones + n,
-            Diminished(n) => match value.size {
-                Unison | Fourth | Fifth => semitones - n,
-                _ => semitones - n - 1,
+    fn from(interval: Interval) -> Self {
+        let value = interval.size.to_diatonic_semitones();
+        let semitones = match interval.quality {
+            Perfect | Major => value,
+            Minor => value - 1,
+            Augmented(n) => value + n,
+            Diminished(n) => match interval.size {
+                Unison | Fourth | Fifth => value - n,
+                _ => value - n - 1,
             }
         };
 
-        semitones + value.octaves * 12
+        (semitones + interval.octaves * 12) % 127
     }
 }
 
 impl From<Interval> for i8 {
     fn from(value: Interval) -> Self {
         u8::from(value) as i8
+    }
+}
+
+impl From<i8> for Interval {
+    fn from(value: i8) -> Self {
+        Interval::from(value.abs() as u8)
     }
 }
 
@@ -64,12 +69,6 @@ impl From<Interval> for i32 {
 
 impl From<i32> for Interval {
     fn from(value: i32) -> Self {
-        Self::from(value.abs() as u8)
-    }
-}
-
-impl From<i8> for Interval {
-    fn from(value: i8) -> Self {
         Interval::from(value.abs() as u8)
     }
 }
@@ -78,7 +77,8 @@ impl Add<i8> for Interval {
     type Output = Self;
 
     fn add(self, rhs: i8) -> Self::Output {
-        Self::from(i8::from(self) + rhs.abs())
+        let value = i8::from(self) as i16 + rhs as i16;
+        Interval::from((value.abs() % 127) as i8)
     }
 }
 
@@ -106,7 +106,7 @@ impl Sub<i8> for Interval {
     type Output = Self;
 
     fn sub(self, rhs: i8) -> Self::Output {
-        Self::from(i8::from(self) - rhs)
+        Interval::from(i8::from(self) - rhs)
     }
 }
 
@@ -120,7 +120,7 @@ impl Add for Interval {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
-        Self::from(u8::from(self) + u8::from(other))
+        Interval::from(((u8::from(self) as u16 + u8::from(other) as u16) % 127) as u8)
     }
 }
 

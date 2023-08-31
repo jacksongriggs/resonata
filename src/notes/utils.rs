@@ -7,9 +7,9 @@ use super::*;
 
 impl From<u8> for Note {
     fn from(value: u8) -> Self {
-        let number = value % 12;
-        let name = NoteName::from_chromatic_scale_degree(number);
-        let accidental = Accidental::from_chromatic_scale_degree(number);
+        let value = value % 12;
+        let name = NoteName::from_chromatic_scale_degree(value);
+        let accidental = Accidental::from_chromatic_scale_degree(value);
         Self { name, accidental }
     }
 }
@@ -17,49 +17,49 @@ impl From<u8> for Note {
 impl From<Note> for u8 {
     fn from(note: Note) -> u8 {
         let number = u8::from(note.name) as i8 + i8::from(note.accidental);
-        number.abs() as u8
+        (number % 12) as u8
     }
 }
 
 impl Add<u8> for Note {
     type Output = Self;
-    fn add(self, semitones: u8) -> Self::Output {
-        let number = std::cmp::min(u8::from(self) as u16 + semitones as u16, 127) as u8;
+    fn add(self, rhs: u8) -> Self::Output {
+        let number = u8::from(self) + rhs % 12;
         Self::from(number)
     }
 }
 
 impl AddAssign<u8> for Note {
-    fn add_assign(&mut self, semitones: u8) {
-        *self = *self + semitones;
+    fn add_assign(&mut self, rhs: u8) {
+        *self = *self + rhs;
     }
 }
 
 impl Sub<u8> for Note {
     type Output = Self;
-    fn sub(self, semitones: u8) -> Self::Output {
-        let number = std::cmp::max(u8::from(self) as i8 - semitones as i8, 0) as u8;
+    fn sub(self, rhs: u8) -> Self::Output {
+        let number = std::cmp::max(u8::from(self) as i8 - rhs as i8, 0) as u8;
         Self::from(number)
     }
 }
 
 impl SubAssign<u8> for Note {
-    fn sub_assign(&mut self, semitones: u8) {
-        *self = *self - semitones;
+    fn sub_assign(&mut self, rhs: u8) {
+        *self = *self - rhs;
     }
 }
 
 impl Sub for Note {
     type Output = crate::Interval;
-    fn sub(self, other: Self) -> Self::Output {
-        crate::Interval::from(u8::from(self) as i8 - u8::from(other) as i8)
+    fn sub(self, rhs: Self) -> Self::Output {
+        crate::Interval::from(u8::from(self) as i8 - u8::from(rhs) as i8)
     }
 }
 
 impl Add<Interval> for Note {
     type Output = Option<Self>;
-    fn add(self, interval: Interval) -> Self::Output {
-        let number = u8::from(self) + u8::from(interval);
+    fn add(self, rhs: Interval) -> Self::Output {
+        let number = u8::from(self) + u8::from(rhs);
         if number > 127 {
             None
         } else {
@@ -69,26 +69,22 @@ impl Add<Interval> for Note {
 }
 
 impl AddAssign<Interval> for Note {
-    fn add_assign(&mut self, interval: Interval) {
-        *self = (*self + interval).unwrap();
+    fn add_assign(&mut self, rhs: Interval) {
+        *self = (*self + rhs).unwrap();
     }
 }
 
 impl Sub<Interval> for Note {
-    type Output = Option<Self>;
-    fn sub(self, interval: Interval) -> Self::Output {
-        let number = u8::from(self) as i8 - i8::from(interval);
-        if number < 0 {
-            None
-        } else {
-            Some(Self::from(number as u8))
-        }
+    type Output = Self;
+    fn sub(self, rhs: Interval) -> Self::Output {
+        let value = u8::from(self) as i8 - i8::from(rhs);
+        Self::from((value % 12) as u8)
     }
 }
 
 impl SubAssign<Interval> for Note {
-    fn sub_assign(&mut self, interval: Interval) {
-        *self = (*self - interval).unwrap();
+    fn sub_assign(&mut self, rhs: Interval) {
+        *self = *self - rhs;
     }
 }
 
@@ -140,79 +136,71 @@ impl From<u8> for PitchedNote {
 }
 
 impl From<PitchedNote> for u8 {
-    fn from(note: PitchedNote) -> Self {
-        u8::from(note.note) + ((note.octave() + 1) * 12) as u8
+    fn from(pnote: PitchedNote) -> Self {
+        u8::from(pnote.note) + ((pnote.octave() + 1) * 12) as u8
     }
 }
 
 impl Add<u8> for PitchedNote {
     type Output = Self;
-    fn add(self, semitones: u8) -> Self::Output {
-        let number = std::cmp::min(u8::from(self) as u16 + semitones as u16, 127) as u8;
-        Self::from(number)
+    fn add(self, rhs: u8) -> Self::Output {
+        let value = u8::from(self) as u16 + rhs as u16;
+        Self::from((value % 127) as u8)
     }
 }
 
 impl AddAssign<u8> for PitchedNote {
-    fn add_assign(&mut self, semitones: u8) {
-        *self = *self + semitones;
+    fn add_assign(&mut self, rhs: u8) {
+        *self = *self + rhs;
     }
 }
 
 impl Sub<u8> for PitchedNote {
     type Output = Self;
-    fn sub(self, semitones: u8) -> Self::Output {
-        let number = std::cmp::max(u8::from(self) as i8 - semitones as i8, 0) as u8;
-        Self::from(number)
+    fn sub(self, rhs: u8) -> Self::Output {
+        let value = u8::from(self) as i8 - rhs as i8;
+        Self::from((value % 127) as u8)
     }
 }
 
 impl SubAssign<u8> for PitchedNote {
-    fn sub_assign(&mut self, semitones: u8) {
-        *self = *self - semitones;
+    fn sub_assign(&mut self, rhs: u8) {
+        *self = *self - rhs;
     }
 }
 
 impl Sub for PitchedNote {
     type Output = crate::Interval;
-    fn sub(self, other: Self) -> Self::Output {
-        crate::Interval::from(u8::from(self) as i8 - u8::from(other) as i8)
+    fn sub(self, rhs: Self) -> Self::Output {
+        crate::Interval::from(u8::from(self) as i8 - u8::from(rhs) as i8)
     }
 }
 
 impl Add<Interval> for PitchedNote {
-    type Output = Option<Self>;
-    fn add(self, interval: Interval) -> Self::Output {
-        let number = u8::from(self) + u8::from(interval);
-        if number > 127 {
-            None
-        } else {
-            Some(Self::from(number))
-        }
+    type Output = Self;
+    fn add(self, rhs: Interval) -> Self::Output {
+        let number = u8::from(self) as u16 + u8::from(rhs) as u16;
+        Self::from((number % 127) as u8)
     }
 }
 
 impl AddAssign<Interval> for PitchedNote {
-    fn add_assign(&mut self, interval: Interval) {
-        *self = (*self + interval).unwrap();
+    fn add_assign(&mut self, rhs: Interval) {
+        *self = *self + rhs;
     }
 }
 
 impl Sub<Interval> for PitchedNote {
-    type Output = Option<Self>;
-    fn sub(self, interval: Interval) -> Self::Output {
-        let number = u8::from(self) as i8 - i8::from(interval);
-        if number < 0 {
-            None
-        } else {
-            Some(Self::from(number as u8))
-        }
+    type Output = Self;
+    fn sub(self, rhs: Interval) -> Self::Output {
+        let value = u8::from(self) as i8 - i8::from(rhs);
+        Self::from((value % 12) as u8)
     }
 }
 
 impl SubAssign<Interval> for PitchedNote {
-    fn sub_assign(&mut self, interval: Interval) {
-        *self = (*self - interval).unwrap();
+    fn sub_assign(&mut self, rhs: Interval) {
+        *self = *self - rhs;
     }
 }
 

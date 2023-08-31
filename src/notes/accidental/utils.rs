@@ -26,28 +26,28 @@ impl From<Accidental> for i8 {
 impl Add<i8> for Accidental {
     type Output = Self;
 
-    fn add(self, amount: i8) -> Self::Output {
-        Self::from(i8::from(self) + amount)
+    fn add(self, rhs: i8) -> Self::Output {
+        Self::from(i8::from(self) + rhs)
     }
 }
 
 impl AddAssign<i8> for Accidental {
-    fn add_assign(&mut self, amount: i8) {
-        *self = *self + amount;
+    fn add_assign(&mut self, rhs: i8) {
+        *self = *self + rhs;
     }
 }
 
 impl Sub<i8> for Accidental {
     type Output = Self;
     
-    fn sub(self, amount: i8) -> Self::Output {
-        Self::from(i8::from(self) - amount)
+    fn sub(self, rhs: i8) -> Self::Output {
+        Self::from(i8::from(self) - rhs)
     }
 }
 
 impl SubAssign<i8> for Accidental {
-    fn sub_assign(&mut self, amount: i8) {
-        *self = *self - amount;
+    fn sub_assign(&mut self, rhs: i8) {
+        *self = *self - rhs;
     }
 }
 

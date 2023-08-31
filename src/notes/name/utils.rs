@@ -3,14 +3,14 @@ use super::super::*;
 
 impl From<u8> for NoteName {
     fn from(value: u8) -> Self {
-        match value % 7 {
-            0 => C,
-            1 => D,
-            2 => E,
-            3 => F,
-            4 => G,
-            5 => A,
-            6 => B,
+        match value % 12 {
+            0 | 1 => C,
+            2 | 3 => D,
+            4 => E,
+            5 | 6 => F,
+            7 | 8 => G,
+            9 | 10 => A,
+            11 => B,
             _ => unreachable!(),
         }
     }
@@ -33,28 +33,28 @@ impl From<NoteName> for u8 {
 impl Add<u8> for NoteName {
     type Output = Self;
 
-    fn add(self, n: u8) -> Self::Output {
-        Self::from(u8::from(self) + n % 6)
+    fn add(self, rhs: u8) -> Self::Output {
+        Self::from(u8::from(self) + rhs % 12)
     }
 }
 
 impl AddAssign<u8> for NoteName {
-    fn add_assign(&mut self, n: u8) {
-        *self = Self::from(u8::from(*self) + n % 6)
+    fn add_assign(&mut self, rhs: u8) {
+        *self = *self + rhs;
     }
 }
 
 impl Sub<u8> for NoteName {
     type Output = Self;
 
-    fn sub(self, n: u8) -> Self::Output {
-        Self::from((u8::from(self) as i8 - n as i8).abs() as u8 % 6)
+    fn sub(self, rhs: u8) -> Self::Output {
+        Self::from(((u8::from(self) as i8 - rhs as i8) % 12) as u8)
     }
 }
 
 impl SubAssign<u8> for NoteName {
-    fn sub_assign(&mut self, n: u8) {
-        *self = Self::from((u8::from(*self) as i8 - n as i8).abs() as u8 % 6)
+    fn sub_assign(&mut self, rhs: u8) {
+        *self = *self - rhs;
     }
 }
 

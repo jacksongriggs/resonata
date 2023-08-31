@@ -87,8 +87,6 @@ impl Scale {
     /// Creates a scale from a list of steps
     /// Steps are relative to the previous note
     /// For example, a major scale would be [2, 2, 1, 2, 2, 2, 1]
-    /// Scales are limited to one octave, so any steps that would go above
-    /// 12 semitones are ignored
     pub fn from_steps(steps: Vec<u8>) -> Self {
         let mut intervals = Vec::new();
         for step in steps {
@@ -101,8 +99,6 @@ impl Scale {
     /// Returns the steps of the scale
     /// Steps are relative to the previous note
     /// For example, a major scale would be [2, 2, 1, 2, 2, 2, 1]
-    /// Scales are limited to one octave, so any steps that would go above
-    /// 12 semitones are ignored
     pub fn to_steps(&self) -> Vec<u8> {
         let mut steps = Vec::new();
         for interval in &self.intervals {
@@ -136,11 +132,10 @@ impl Scale {
     /// Returns the notes of the scale from the given root note
     pub fn to_notes(&self, root: Note) -> Vec<Note> {
         let mut notes = Vec::new();
-        let mut semitones = 0;
-        notes.push(root);
-        for i in 0..self.intervals.len() - 1 {
-            semitones += u8::from(self.interval(i));
-            notes.push(root + semitones);
+        let mut last_note = root;
+        for interval in &self.intervals {
+            notes.push(last_note);
+            last_note += *interval;
         }
         notes
     }
