@@ -12,7 +12,6 @@ pub use crate::{
 pub mod types;
 pub mod macros;
 mod utils;
-mod tests;
 
 /// A musical scale
 /// Scale are represented by an optional root note and a list of intervals
