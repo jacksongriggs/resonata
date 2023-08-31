@@ -1,7 +1,6 @@
 pub use IntervalSize::*;
 
-pub mod utils;
-mod tests;
+mod utils;
 
 /// A musical interval size
 /// To get an octave or above, use the `octaves` field
