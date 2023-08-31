@@ -1,7 +1,6 @@
 pub use Accidental::*;
 
 pub mod utils;
-mod tests;
 
 /// A musical accidental
 /// Flats and sharps take a number to represent
