@@ -172,9 +172,3 @@ impl Scale {
         &self.intervals
     }
 }
-
-/// The direction of a rotation
-pub enum Direction {
-    Up,
-    Down,
-}
