@@ -1,7 +1,6 @@
 pub use IntervalQuality::*;
 
-pub mod utils;
-mod tests;
+mod utils;
 
 /// A musical interval quality
 /// Diminished and augmented take a number to represent
