@@ -1,29 +1,11 @@
 use std::ops::{Add, Sub, AddAssign, SubAssign};
 use super::*;
 
+//===========[Add]==============================================================
 impl Add<u8> for IntervalSize {
     type Output = Self;
     fn add(self, rhs: u8) -> Self::Output {
         Self::from(u8::from(self) + (rhs % 7))
-    }
-}
-
-impl AddAssign<u8> for IntervalSize {
-    fn add_assign(&mut self, rhs: u8) {
-        *self = *self + rhs;
-    }
-}
-
-impl Sub<u8> for IntervalSize {
-    type Output = Self;
-    fn sub(self, rhs: u8) -> Self::Output {
-        Self::from(u8::from(self) + 7 - (rhs % 7))
-    }
-}
-
-impl SubAssign<u8> for IntervalSize {
-    fn sub_assign(&mut self, rhs: u8) {
-        *self = *self - rhs;
     }
 }
 
@@ -34,9 +16,11 @@ impl Add for IntervalSize {
     }
 }
 
-impl AddAssign for IntervalSize {
-    fn add_assign(&mut self, rhs: Self) {
-        *self = *self + rhs;
+//===========[Sub]==============================================================
+impl Sub<u8> for IntervalSize {
+    type Output = Self;
+    fn sub(self, rhs: u8) -> Self::Output {
+        Self::from(u8::from(self) + 7 - (rhs % 7))
     }
 }
 
@@ -47,8 +31,28 @@ impl Sub for IntervalSize {
     }
 }
 
+//===========[AddAssign]========================================================
+impl AddAssign for IntervalSize {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
+    }
+}
+
+impl AddAssign<u8> for IntervalSize {
+    fn add_assign(&mut self, rhs: u8) {
+        *self = *self + rhs;
+    }
+}
+
+//===========[SubAssign]========================================================
 impl SubAssign for IntervalSize {
     fn sub_assign(&mut self, rhs: Self) {
+        *self = *self - rhs;
+    }
+}
+
+impl SubAssign<u8> for IntervalSize {
+    fn sub_assign(&mut self, rhs: u8) {
         *self = *self - rhs;
     }
 }
