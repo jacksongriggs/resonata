@@ -1,5 +1,7 @@
-use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr, ops::{Add, Sub, AddAssign, SubAssign}};
 use super::super::*;
+
+mod ops;
+mod fmt;
 
 impl From<u8> for NoteName {
     fn from(value: u8) -> Self {
@@ -28,70 +30,4 @@ impl From<NoteName> for u8 {
             B => 11,
         }
     }
-}
-
-impl Add<u8> for NoteName {
-    type Output = Self;
-
-    fn add(self, rhs: u8) -> Self::Output {
-        Self::from(u8::from(self) + rhs % 12)
-    }
-}
-
-impl AddAssign<u8> for NoteName {
-    fn add_assign(&mut self, rhs: u8) {
-        *self = *self + rhs;
-    }
-}
-
-impl Sub<u8> for NoteName {
-    type Output = Self;
-
-    fn sub(self, rhs: u8) -> Self::Output {
-        Self::from(((u8::from(self) as i8 - rhs as i8) % 12) as u8)
-    }
-}
-
-impl SubAssign<u8> for NoteName {
-    fn sub_assign(&mut self, rhs: u8) {
-        *self = *self - rhs;
-    }
-}
-
-impl FromStr for NoteName {
-    type Err = ResonataError;
-    
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_ascii_lowercase().as_str() {
-            "c" => Ok(C),
-            "d" => Ok(D),
-            "e" => Ok(E),
-            "f" => Ok(F),
-            "g" => Ok(G),
-            "a" => Ok(A),
-            "b" => Ok(B),
-            _ => nope!(InvalidNoteName)
-        }
-    }
-}
-
-impl Display for NoteName {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let token = match self {
-            C => "C",
-            D => "D",
-            E => "E",
-            F => "F",
-            G => "G",
-            A => "A",
-            B => "B",
-        };
-        write!(f, "{}", token)
-    }   
-}
-
-impl Debug for NoteName {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_string())
-    }   
 }

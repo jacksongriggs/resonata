@@ -1,4 +1,5 @@
 use super::*;
+
 pub mod utils;
 
 /// A musical note name
