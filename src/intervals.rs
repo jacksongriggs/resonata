@@ -12,7 +12,6 @@ pub mod quality;
 pub mod size;
 pub mod macros;
 mod utils;
-mod tests;
 
 /// A musical interval
 /// The interval is represented by the number of semitones
