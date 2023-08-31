@@ -25,7 +25,7 @@ impl FromStr for Scale {
                 for window in notes.windows(2) {
                     intervals.push(window[1] - window[0]);
                 }
-                intervals.push(12 as i8 - (notes[0] - notes[notes.len() - 1]));
+                intervals.push(12 - (notes[0] - notes[notes.len() - 1]));
                 Ok(Scale { intervals })
             }
             _ => nope!(InvalidScale),

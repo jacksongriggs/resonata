@@ -1,8 +1,9 @@
 use std::{fmt::{self, Display, Formatter, Debug}, str::FromStr};
 use lazy_static::lazy_static;
 use regex::Regex;
-use super::*;
+use crate::yep;
 
+use super::*;
 
 lazy_static! {
     static ref INTERVAL_QUALITY_REGEX: Regex = Regex::new(r"^(?P<quality>[#x𝄪b♯♯♭♭♮mMpPaAdD\+-]*)(?P<size>\d+)(?:th)?$").unwrap();
@@ -13,7 +14,7 @@ impl FromStr for Interval {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.chars().all(char::is_numeric) {
             let size = s.parse::<u8>().map_err(|_| InvalidInterval)?;
-            return Ok(Interval::from(size));
+            yep!(Interval::from(size));
         }
         if let Some(cap) = INTERVAL_QUALITY_REGEX.captures(s) {
             let quality_expr = cap.name("quality").map_or("", |x| x.as_str());
