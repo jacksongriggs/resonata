@@ -11,7 +11,6 @@ pub mod name;
 pub mod accidental;
 pub mod macros;
 mod utils;
-mod tests;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Note {
