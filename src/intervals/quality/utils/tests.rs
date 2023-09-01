@@ -1,28 +1,37 @@
 #[cfg(test)]
 mod tests {
-    use crate::intervals::quality::IntervalQuality;
-    use crate::*;
-    use IntervalQuality::*;
+    use crate::{*, intervals::quality::IntervalQuality};
+    use IntervalQuality::{self as IQ, *};
 
     #[test]
     fn test_invert() {
+        // Diminished becomes augmented, augmented becomes diminished
         assert_eq!(Diminished(1).invert(), Augmented(1));
         assert_eq!(Augmented(1).invert(), Diminished(1));
+
+        // Minor becomes major, major becomes minor
         assert_eq!(Minor.invert(), Major);
         assert_eq!(Major.invert(), Minor);
+
+        // Perfect stays perfect
         assert_eq!(Perfect.invert(), Perfect);
+
+        // Extreme cases
+        assert_eq!(Diminished(0).invert(), Augmented(0));
+        assert_eq!(Augmented(0).invert(), Diminished(0));
+        assert_eq!(Diminished(255).invert(), Augmented(255));
+        assert_eq!(Augmented(255).invert(), Diminished(255));
     }
 
     #[test]
-    fn test_from_str_interval_quality() {
-        use IntervalQuality as IQ;
-        use IntervalQuality::*;
+    fn test_from_str() {
         assert_eq!(IQ::from_str("M"), Ok(Major));
         assert_eq!(IQ::from_str("m"), Ok(Minor));
         assert_eq!(IQ::from_str("P"), Ok(Perfect));
         assert_eq!(IQ::from_str("A"), Ok(Augmented(1)));
         assert_eq!(IQ::from_str("d"), Ok(Diminished(1)));
-        assert_eq!(IQ::from_str("Q"), err!(error::InvalidIntervalQuality));
+        assert_eq!(IQ::from_str("AA"), Ok(Augmented(2)));
+        assert_eq!(IQ::from_str("dd"), Ok(Diminished(2)));
     }
 
     #[test]

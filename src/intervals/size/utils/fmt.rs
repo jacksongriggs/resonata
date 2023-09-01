@@ -8,34 +8,15 @@ use super::*;
 
 impl FromStr for IntervalSize {
     type Err = ResonataError;
-
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        // if str is a cardinal number convert into u8 and then into IntervalSize
-        if let Ok(number) = s.parse::<u8>() {
-            yep!(IntervalSize::from(number - 1))
-        }
-
-        // if str is an ordinal number, convert into u8 and then into IntervalSize
-        if let Ok(number) = s
-            .trim_end_matches("st")
-            .trim_end_matches("nd")
-            .trim_end_matches("rd")
-            .trim_end_matches("th")
-            .trim_end_matches("ve")
-            .parse::<u8>()
-        {
-            yep!(IntervalSize::from(number - 1))
-        }
-
-        // if str is a string, match against the string and return the corresponding IntervalSize
-        match s.to_lowercase().as_str() {
-            "unison" | "u" => Ok(Unison),
-            "second" => Ok(Second),
-            "third" => Ok(Third),
-            "fourth" => Ok(Fourth),
-            "fifth" => Ok(Fifth),
-            "sixth" => Ok(Sixth),
-            "seventh" => Ok(Seventh),
+        match s {
+            "U" => Ok(Unison),
+            "2" => Ok(Second),
+            "3" => Ok(Third),
+            "4" => Ok(Fourth),
+            "5" => Ok(Fifth),
+            "6" => Ok(Sixth),
+            "7" => Ok(Seventh),
             _ => nope!(InvalidIntervalSize),
         }
     }

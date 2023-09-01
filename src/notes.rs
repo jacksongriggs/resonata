@@ -25,10 +25,7 @@ impl Note {
     }
 
     pub fn from_note_name(name: NoteName) -> Self {
-        Note {
-            name,
-            accidental: Natural,
-        }
+        Note { name, accidental: Natural, }
     }
 }
 

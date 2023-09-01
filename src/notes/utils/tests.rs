@@ -92,6 +92,8 @@ mod tests {
         assert_eq!(pnote!(C, Flat(1), 4), PitchedNote::new(C, Flat(1), 4));
         assert_eq!(pnote!(E, Sharp(2), -1), PitchedNote::new(E, Sharp(2), -1));
         assert_eq!(pnote!("C4").unwrap(), PitchedNote::new(C, Natural, 4));
+        assert_eq!(pnote!(C, -1), PitchedNote::from(0));
+        assert_eq!(pnote!(G, 9), PitchedNote::from(127));
     }
 
     #[test]
@@ -114,14 +116,6 @@ mod tests {
             pnote!(C, 4) - pnote!(F, Sharp(1), 4),
             inv!(Augmented(1), Fourth).unwrap()
         );
-
-        let n4 = pnote!(C, Flat(1), 4);
-        println!("Note: {}", n4);
-
-        let n2 = pnote!(C, 4);
-        println!("Note: {}", n2);
-
-        let i4 = n4 - n2;
-        println!("{} - {} = {}", n4, n2, i4);
+        assert_eq!(pnote!(C, -1) - pnote!(G, 9), Interval::from(127));
     }
 }

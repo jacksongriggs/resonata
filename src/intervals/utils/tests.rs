@@ -31,29 +31,17 @@ mod tests {
 
     #[test]
     fn test_from_str() {
-        assert_eq!(
-            inv!(Perfect, Unison).unwrap(),
-            "P1".parse::<Interval>().unwrap()
-        );
-        assert_eq!(
-            inv!(Major, Second).unwrap(),
-            "M2".parse::<Interval>().unwrap()
-        );
-        assert_eq!(
-            inv!(Augmented(1), Fourth).unwrap(),
-            "A4".parse::<Interval>().unwrap()
-        );
-        assert_eq!(
-            inv!(Diminished(1), Fifth).unwrap(),
-            "d5".parse::<Interval>().unwrap()
-        );
-        assert_eq!(
-            inv!(Augmented(1), Fourth).unwrap(),
-            "6".parse::<Interval>().unwrap()
-        );
-
-        let mut inv = inv!("2").unwrap();
-        inv += 2;
+        assert_eq!(inv!(Perfect, Unison).unwrap(), Interval::from_str("PU").unwrap());
+        assert_eq!(inv!(Major, Second).unwrap(), Interval::from_str("M2").unwrap());
+        assert_eq!(inv!(Minor, Third).unwrap(), Interval::from_str("m3").unwrap());
+        assert_eq!(inv!(Major, Third).unwrap(), Interval::from_str("M3").unwrap());
+        assert_eq!(inv!(Perfect, Fourth).unwrap(), Interval::from_str("P4").unwrap());
+        assert_eq!(inv!(Diminished(1), Fifth).unwrap(), Interval::from_str("d5").unwrap());
+        assert_eq!(inv!(Perfect, Fifth).unwrap(), Interval::from_str("P5").unwrap());
+        assert_eq!(inv!(Minor, Sixth).unwrap(), Interval::from_str("m6").unwrap());
+        assert_eq!(inv!(Major, Sixth).unwrap(), Interval::from_str("M6").unwrap());
+        assert_eq!(inv!(Minor, Seventh).unwrap(), Interval::from_str("m7").unwrap());
+        assert_eq!(inv!(Major, Seventh).unwrap(), Interval::from_str("M7").unwrap());
     }
 
     #[test]
@@ -112,16 +100,14 @@ mod tests {
         // test max interval size
         let mut interval = inv!(Perfect, Unison).unwrap();
         interval += 127;
-        assert_eq!(interval, inv!(Perfect, Unison).unwrap());
-        interval += 1;
-        assert_eq!(interval, inv!(Minor, Second).unwrap());
+        assert_eq!(interval, inv!(Perfect, Fifth, 10).unwrap());
 
         // test min interval size
         let mut interval = inv!(Perfect, Unison).unwrap();
         interval -= 127;
+        assert_eq!(interval, inv!(Perfect, Fifth, 10).unwrap());
+        interval += 1;
         assert_eq!(interval, inv!(Perfect, Unison).unwrap());
-        interval -= 1;
-        assert_eq!(interval, inv!(Minor, Second).unwrap());
     }
 
     #[test]

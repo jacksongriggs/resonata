@@ -13,15 +13,6 @@ impl From<i32> for Note {
     }
 }
 
-impl From<u8> for Note {
-    fn from(value: u8) -> Self {
-        let value = value % 12;
-        let name = NoteName::from_chromatic_scale_degree(value);
-        let accidental = Accidental::from_chromatic_scale_degree(value as i32);
-        Note { name, accidental }
-    }
-}
-
 impl From<Note> for i32 {
     fn from(note: Note) -> i32 {
         let number = u8::from(note.name) as i32 + i32::from(note.accidental);
@@ -29,16 +20,9 @@ impl From<Note> for i32 {
     }
 }
 
-impl From<Note> for u8 {
-    fn from(note: Note) -> u8 {
-        let number = u8::from(note.name) as i32 + i32::from(note.accidental);
-        ((number + 12) % 12) as u8
-    }
-}
-
 impl From<u8> for PitchedNote {
     fn from(value: u8) -> Self {
-        let note = Note::from(value);
+        let note = Note::from(value as i32);
         let octave = (value / 12) as i8 - 1;
         Self { note, octave }
     }

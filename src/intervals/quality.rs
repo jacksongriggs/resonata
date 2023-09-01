@@ -3,9 +3,11 @@ pub use IntervalQuality::*;
 mod utils;
 
 /// A musical interval quality
-/// Diminished and augmented take a number to represent
-/// the number of diminished or augmented intervals. For example,
-/// `Diminished(2)` would be a double diminished interval.
+/// The interval quality is the quality of the interval, which
+/// can be diminished, minor, major, perfect or augmented.
+/// 
+/// The number of diminished or augmented intervals is represented
+/// by a number. For example, `Diminished(2)` would be a double diminished interval.
 #[derive(Clone, Copy)]
 pub enum IntervalQuality {
     Diminished(u8),

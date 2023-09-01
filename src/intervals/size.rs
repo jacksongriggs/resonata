@@ -6,6 +6,7 @@ mod utils;
 /// To get an octave or above, use the `octaves` field
 /// in the `Interval` struct
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+#[repr(u8)]
 pub enum IntervalSize {
     Unison,
     Second,

@@ -42,6 +42,10 @@ mod tests {
         let scale = Scale::from_str("C, D, E, F, G, A, B").unwrap();
         let expected_scale = Scale::major();
         assert_eq!(scale, expected_scale);
+
+        let scale = Scale::from_str("Cb, Db, Eb, Fb, Gb, Ab, Bb").unwrap();
+        let expected_scale = Scale::major();
+        assert_eq!(scale, expected_scale);
     }
 
     #[test]

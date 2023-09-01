@@ -7,7 +7,7 @@ mod tests;
 
 impl From<u8> for Interval {
     fn from(value: u8) -> Self {
-        let value = value % 127;
+        let value = value % 128;
         let (quality, size) = match value % 12 {
             0 => (Perfect, Unison),
             1 => (Minor, Second),
@@ -47,7 +47,7 @@ impl From<Interval> for u8 {
             },
         };
 
-        (semitones + interval.octaves * 12) % 127
+        (semitones + interval.octaves * 12) % 128
     }
 }
 

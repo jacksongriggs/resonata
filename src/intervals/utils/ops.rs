@@ -6,7 +6,7 @@ impl Add<i8> for Interval {
     type Output = Self;
     fn add(self, rhs: i8) -> Self::Output {
         let value = i8::from(self) as i16 + rhs as i16;
-        Interval::from((value.abs() % 127) as i8)
+        Interval::from((value.abs() % 128) as i8)
     }
 }
 
@@ -23,7 +23,7 @@ impl Sub<i8> for Interval {
     type Output = Self;
     fn sub(self, rhs: i8) -> Self::Output {
         let value = i8::from(self) as i16 - rhs as i16;
-        Interval::from((value.abs() % 127) as i8)
+        Interval::from((value.abs() % 128) as i8)
     }
 }
 
@@ -31,7 +31,7 @@ impl Sub<Interval> for i8 {
     type Output = Interval;
     fn sub(self, rhs: Interval) -> Self::Output {
         let value = self as i16 - i8::from(rhs) as i16;
-        Interval::from((value.abs() % 127) as i8)
+        Interval::from((value.abs() % 128) as i8)
     }
 }
 

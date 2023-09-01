@@ -5,23 +5,14 @@ mod tests {
     use IntervalSize::*;
 
     #[test]
-    fn test_from_str_interval_size() {
-        use IntervalSize as IS;
-        assert_eq!(IS::from_str("1st"), Ok(Unison));
-        assert_eq!(IS::from_str("2nd"), Ok(Second));
-        assert_eq!(IS::from_str("3rd"), Ok(Third));
-        assert_eq!(IS::from_str("4th"), Ok(Fourth));
-        assert_eq!(IS::from_str("5"), Ok(Fifth));
-        assert_eq!(IS::from_str("6th"), Ok(Sixth));
-        assert_eq!(IS::from_str("7"), Ok(Seventh));
-        assert_eq!(IS::from_str("8ve"), Ok(Unison));
-        assert_eq!(IS::from_str("9"), Ok(Second));
-        assert_eq!(IS::from_str("10th"), Ok(Third));
-        assert_eq!(IS::from_str("11"), Ok(Fourth));
-        assert_eq!(IS::from_str("12th"), Ok(Fifth));
-        assert_eq!(IS::from_str("13"), Ok(Sixth));
-        assert_eq!(IS::from_str("14"), Ok(Seventh));
-        assert_eq!(IS::from_str("15"), Ok(Unison));
+    fn test_valid_from_str() {
+        assert_eq!(Unison, IntervalSize::from_str("U").unwrap());
+        assert_eq!(Second, IntervalSize::from_str("2").unwrap());
+        assert_eq!(Third, IntervalSize::from_str("3").unwrap());
+        assert_eq!(Fourth, IntervalSize::from_str("4").unwrap());
+        assert_eq!(Fifth, IntervalSize::from_str("5").unwrap());
+        assert_eq!(Sixth, IntervalSize::from_str("6").unwrap());
+        assert_eq!(Seventh, IntervalSize::from_str("7").unwrap());
     }
 
     #[test]

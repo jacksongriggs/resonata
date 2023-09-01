@@ -14,7 +14,7 @@ impl From<u8> for IntervalSize {
             4 => Fifth,
             5 => Sixth,
             6 => Seventh,
-            _ => unreachable!("Result should always be in the range 0..6"),
+            _ => unreachable!(),
         }
     }
 }
