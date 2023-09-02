@@ -7,14 +7,13 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-resonata = "0.1.0"
+resonata = "0.4.0"
 ```
 
 ## Example
 
 ```rust
-use resonata::note::Note;
-use resonata::scale::Scale;
+use resonata::notes::*;
 
 let note = note!("C").unwrap();
 let scale = Scale::major(&note);
