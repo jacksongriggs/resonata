@@ -5,9 +5,9 @@ macro_rules! scale {
         Scale::from_string($str)
     };
     ($scale_type:expr) => {
-        Scale::from_steps($scale_type.as_steps())
+        Scale::from_steps($scale_type.as_steps()).unwrap()
     };
     ($scale_type:expr, $rot:expr) => {
-        Scale::from_steps($scale_type.as_steps()).rotated($rot)
+        Scale::from_steps($scale_type.as_steps()).unwrap().rotated($rot)
     };
 }
