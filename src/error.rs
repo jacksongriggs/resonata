@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+pub use crate::{err, nope, yep};
+
 pub use IntervalError::*;
 pub use NoteError::*;
 pub use ScaleError::*;
@@ -35,6 +37,16 @@ pub enum NoteError {
 }
 
 #[derive(Error, Debug, PartialEq, Eq)]
+pub enum KeyError {
+    #[error("Invalid key")]
+    InvalidKey,
+    #[error("Invalid key format")]
+    InvalidKeyFormat,
+    #[error("Duplicate pitch")]
+    DuplicatePitch,
+}
+
+#[derive(Error, Debug, PartialEq, Eq)]
 pub enum ScaleError {
     #[error("Invalid scale")]
     InvalidScale,
@@ -50,6 +62,8 @@ pub enum ResonataError {
     IntervalError(#[from] IntervalError),
     #[error("Scale error: {0}")]
     ScaleError(#[from] ScaleError),
+    #[error("Key error: {0}")]
+    KeyError(#[from] KeyError),
 }
 
 /// A macro to create a `ResonataError` from a `NoteError`, `IntervalError` or `ScaleError`

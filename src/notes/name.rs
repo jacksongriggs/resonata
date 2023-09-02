@@ -1,9 +1,10 @@
-use super::*;
+pub use NoteName::*;
 
 pub mod utils;
 
 /// A musical note name
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
+#[repr(u8)]
 pub enum NoteName {
     C,
     D,
@@ -28,6 +29,7 @@ impl NoteName {
         }
     }
 
+    /// Returns the note name from the given chromatic number, based on the C major scale
     pub fn from_chromatic_scale_degree(number: u8) -> Self {
         match number % 12 {
             0 => C,
@@ -42,7 +44,7 @@ impl NoteName {
             9 => A,
             10 => A,
             11 => B,
-            _ => unreachable!(),
+            _ => unreachable!()
         }
     }
 }

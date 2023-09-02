@@ -2,7 +2,7 @@
 #[macro_export]
 macro_rules! scale {
     ($str:literal) => {
-        Scale::from_str($str)
+        Scale::from_string($str)
     };
     ($scale_type:expr) => {
         Scale::from_steps($scale_type.as_steps())

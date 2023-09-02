@@ -2,7 +2,7 @@
 #[macro_export]
 macro_rules! inv {
     ($s:literal) => {
-        Interval::from_str($s)
+        Interval::from_string($s)
     };
     ($quality:expr, $size:expr) => {
         Interval::build($quality, $size, 0)

@@ -1,10 +1,6 @@
-pub use crate::{
-    error::{
-        ResonataError,
-        ScaleError::{self, *},
-    },
-    nope, Interval, Note, PitchedNote,
-};
+use std::str::FromStr;
+
+use crate::{intervals::Interval, notes::*};
 pub use types::ScaleType::*;
 
 pub mod macros;
@@ -26,80 +22,91 @@ pub struct Scale {
 }
 
 impl Scale {
+    /// Attempts to create a scale from the given string.
+    pub fn from_string(s: &str) -> Option<Scale> {
+        match Scale::from_str(s) {
+            Ok(scale) => Some(scale),
+            Err(_) => None,
+        }
+    }
+
     /// Creates a major scale
     pub fn major() -> Self {
-        Self::from_steps(Major.as_steps())
+        Self::from_steps(Major.as_steps()).unwrap()
     }
 
     /// Creates a minor scale
     pub fn minor() -> Self {
-        Self::from_steps(Minor.as_steps())
+        Self::from_steps(Minor.as_steps()).unwrap()
     }
 
     /// Creates a harmonic minor scale
     pub fn harmonic_minor() -> Self {
-        Self::from_steps(HarmonicMinor.as_steps())
+        Self::from_steps(HarmonicMinor.as_steps()).unwrap()
     }
 
     /// Creates a melodic minor scale
     pub fn melodic_minor() -> Self {
-        Self::from_steps(MelodicMinor.as_steps())
+        Self::from_steps(MelodicMinor.as_steps()).unwrap()
     }
 
     /// Creates a major pentatonic scale
     pub fn major_pentatonic() -> Self {
-        Self::from_steps(MajorPentatonic.as_steps())
+        Self::from_steps(MajorPentatonic.as_steps()).unwrap()
     }
 
     /// Creates a minor pentatonic scale
     pub fn minor_pentatonic() -> Self {
-        Self::from_steps(MinorPentatonic.as_steps())
+        Self::from_steps(MinorPentatonic.as_steps()).unwrap()
     }
 
     /// Creates a minor blues scale
     pub fn minor_blues() -> Self {
-        Self::from_steps(MinorBlues.as_steps())
+        Self::from_steps(MinorBlues.as_steps()).unwrap()
     }
 
     /// Creates a major blues scale
     pub fn major_blues() -> Self {
-        Self::from_steps(MajorBlues.as_steps())
+        Self::from_steps(MajorBlues.as_steps()).unwrap()
     }
 
     /// Creates a whole tone scale
     pub fn whole_tone() -> Self {
-        Self::from_steps(WholeTone.as_steps())
+        Self::from_steps(WholeTone.as_steps()).unwrap()
     }
 
     /// Creates a diminished scale
     pub fn diminished() -> Self {
-        Self::from_steps(Diminished.as_steps())
+        Self::from_steps(Diminished.as_steps()).unwrap()
     }
 
     /// Creates a chromatic scale
     pub fn chromatic() -> Self {
-        Self::from_steps(Chromatic.as_steps())
+        Self::from_steps(Chromatic.as_steps()).unwrap()
     }
 
     /// Creates a scale from a list of steps
     /// Steps are relative to the previous note
     /// For example, a major scale would be [2, 2, 1, 2, 2, 2, 1]
-    pub fn from_steps(steps: Vec<u8>) -> Self {
+    pub fn from_steps(steps: Vec<i32>) -> Option<Self> {
         let mut intervals = Vec::new();
         for step in steps {
-            intervals.push(Interval::from(step));
+            match Interval::from_semitones(step) {
+                Some(interval) => intervals.push(interval),
+                None => return None,
+            }
         }
 
-        Self { intervals }
+        Some(Self { intervals })
     }
 
     /// Returns the steps of the scale
     /// Steps are relative to the previous note
     /// For example, a major scale would be [2, 2, 1, 2, 2, 2, 1]
-    pub fn to_steps(&self) -> Vec<u8> {
+    pub fn to_steps(&self) -> Vec<i32> {
         let mut steps = Vec::new();
         for interval in &self.intervals {
-            steps.push(u8::from(*interval));
+            steps.push(interval.to_semitones());
         }
 
         steps
@@ -153,7 +160,7 @@ impl Scale {
             true => steps.rotate_left(n as usize),
             false => steps.rotate_right(n.abs() as usize),
         }
-        Self::from_steps(steps)
+        Self::from_steps(steps).unwrap()
     }
 
     /// Returns the interval at the given index

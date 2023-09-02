@@ -52,7 +52,7 @@ pub enum MelodicMinorModes {
 }
 
 impl ScaleType {
-    pub fn as_steps(&self) -> Vec<u8> {
+    pub fn as_steps(&self) -> Vec<i32> {
         match self {
             Major => vec![2, 2, 1, 2, 2, 2, 1],
             Minor => vec![2, 1, 2, 2, 1, 2, 2],
@@ -90,7 +90,7 @@ impl Display for ScaleType {
 }
 
 impl MajorModes {
-    pub fn to_steps(&self) -> Vec<u8> {
+    pub fn to_steps(&self) -> Vec<i32> {
         let mut mode = ScaleType::Major.as_steps();
         mode.rotate_left(*self as usize);
         mode
@@ -98,7 +98,7 @@ impl MajorModes {
 }
 
 impl HarmonicMinorModes {
-    pub fn to_steps(&self) -> Vec<u8> {
+    pub fn to_steps(&self) -> Vec<i32> {
         let mut mode = ScaleType::HarmonicMinor.as_steps();
         mode.rotate_left(*self as usize);
         mode

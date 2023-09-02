@@ -1,76 +1,141 @@
-use super::*;
+use crate::{intervals::*, error::*};
+use std::{
+    fmt::{self, Debug, Display, Formatter},
+    str::FromStr,
+    ops::{Add, AddAssign, Sub, SubAssign},
+};
 
-mod cmp;
-mod fmt;
-mod ops;
-mod tests;
+impl FromStr for Interval {
+    type Err = ResonataError;
 
-impl From<u8> for Interval {
-    fn from(value: u8) -> Self {
-        let value = value % 128;
-        let (quality, size) = match value % 12 {
-            0 => (Perfect, Unison),
-            1 => (Minor, Second),
-            2 => (Major, Second),
-            3 => (Minor, Third),
-            4 => (Major, Third),
-            5 => (Perfect, Fourth),
-            6 => (Diminished(1), Fifth),
-            7 => (Perfect, Fifth),
-            8 => (Minor, Sixth),
-            9 => (Major, Sixth),
-            10 => (Minor, Seventh),
-            11 => (Major, Seventh),
-            _ => unreachable!("Modulo 12 should never be outside of 0-11"),
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // Variables to store the parsed quality and size
+        let mut quality_string = String::new();
+        let mut size_string = s.to_string();
+
+        // Split string into quality and size.
+        // Handle the cases where quality is 'A', 'd', 'M', 'm' or 'P' characters
+        // Iterate over the string from the start and keep adding the characters
+        // to the quality until a numeric digit is encountered.
+        for c in s.chars() {
+            match c {
+                'A' | 'd' | 'M' | 'm' | 'P' => {
+                    quality_string.push(c);
+                    size_string = size_string.split_off(1);
+                }
+                _ => break,
+            }
+        }
+
+        // If the quality string is empty, then parse the size string as semitones
+        if quality_string.is_empty() {
+            let semitones = match size_string.parse::<i32>() {
+                Ok(n) => n,
+                Err(_) => nope!(InvalidIntervalSize),
+            };
+
+            match Interval::from_semitones(semitones) {
+                Some(interval) => return Ok(interval),
+                None => nope!(InvalidInterval),
+            }
+        }
+
+
+        // Parse quality from the quality string
+        let quality = IntervalQuality::from_str(&quality_string)?;
+
+        // Parse size from the size string:
+        let mut octaves: u8 = 0;
+        let size = match size_string.as_str() {
+            "U" => Unison,
+            _ => match size_string.parse::<u8>() {
+                Ok(n) => {
+                    match n {
+                        0 => nope!(InvalidIntervalSize),
+                        _ => {
+                            let n = n - 1;
+                            if n >= 7 {
+                                octaves = n / 7;
+                            }
+                            IntervalSize::from(n % 7)
+                        }
+                    }
+                }
+                Err(_) => nope!(InvalidIntervalSize),
+            },
         };
 
-        let octaves = (value / 12) as u8;
-
-        Interval {
-            quality,
-            size,
-            octaves,
+        // Construct and return the interval
+        match Interval::build(quality, size, octaves) {
+            Some(interval) => Ok(interval),
+            None => nope!(InvalidInterval),
         }
     }
 }
 
-impl From<Interval> for u8 {
-    fn from(interval: Interval) -> Self {
-        let value = interval.size.to_diatonic_semitones();
-        let semitones = match interval.quality {
-            Perfect | Major => value,
-            Minor => value - 1,
-            Augmented(n) => value + n,
-            Diminished(n) => match interval.size {
-                Unison | Fourth | Fifth => value - n,
-                _ => value - n - 1,
-            },
-        };
-
-        (semitones + interval.octaves * 12) % 128
+impl Display for Interval {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let quality = self.quality.to_string();
+        let size = self.size as u8 + 1 + (self.octaves * 7);
+        write!(f, "{}{}", quality, size)
     }
 }
 
-impl From<Interval> for i8 {
-    fn from(value: Interval) -> Self {
-        u8::from(value) as i8
+impl Debug for Interval {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.to_string())
     }
 }
 
-impl From<i8> for Interval {
-    fn from(value: i8) -> Self {
-        Interval::from(value.abs() as u8)
+
+impl Add for Interval {
+    type Output = Option<Interval>;
+    fn add(self, rhs: Self) -> Option<Interval> {
+        Interval::from_semitones(self.to_semitones() + rhs.to_semitones())
     }
 }
 
-impl From<Interval> for i32 {
-    fn from(value: Interval) -> Self {
-        u8::from(value) as i32
+impl Sub for Interval {
+    type Output = Option<Interval>;
+    fn sub(self, rhs: Self) -> Option<Interval> {
+        Interval::from_semitones(self.to_semitones() - rhs.to_semitones())
     }
 }
 
-impl From<i32> for Interval {
-    fn from(value: i32) -> Self {
-        Interval::from(value.abs() as u8)
+impl AddAssign for Interval {
+    fn add_assign(&mut self, rhs: Self) {
+        match *self + rhs {
+            Some(interval) => *self = interval,
+            None => panic!("Interval addition overflowed"),
+        }
+    }
+}
+
+impl SubAssign for Interval {
+    fn sub_assign(&mut self, rhs: Self) {
+        match *self - rhs {
+            Some(interval) => *self = interval,
+            None => panic!("Interval subtraction overflowed"),
+        }
+    }
+}
+
+impl PartialEq for Interval {
+    fn eq(&self, other: &Self) -> bool {
+        self.to_semitones() == other.to_semitones()
+    }
+}
+
+impl Eq for Interval {}
+
+impl PartialOrd for Interval {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.to_semitones().cmp(&other.to_semitones()))
+    }
+}
+
+impl Ord for Interval {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.to_semitones().cmp(&other.to_semitones())
     }
 }
