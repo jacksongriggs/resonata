@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use crate::{intervals::Interval, notes::*};
 pub use types::ScaleType::*;
+pub use crate::scale;
 
 pub mod macros;
 pub mod types;
@@ -14,8 +15,45 @@ mod utils;
 /// [Unison, MajorSecond, MajorThird, PerfectFourth, PerfectFifth, MajorSixth, MajorSeventh]
 ///
 /// A macro is provided to make creating scales easier:
-/// scale!(note scale_type)
-/// scale!(scale_type)
+/// 
+/// scale!(string)  
+/// 
+/// scale!(type)  
+/// 
+/// scale!(type, rotation)  
+/// 
+/// ### Examples
+/// ```
+/// use resonata::{notes::*, scales::*};
+/// 
+/// let scale = scale!("2, 2, 1, 2, 2, 2, 1").unwrap();
+/// assert_eq!(scale, Scale::major());
+/// 
+/// let scale = scale!("C, D, E, F, G, A, B").unwrap();
+/// assert_eq!(scale, Scale::major());
+/// 
+/// let scale = scale!(Major);
+/// assert_eq!(scale.to_notes(note!("C").unwrap()), vec![
+///     note!("C").unwrap(),
+///     note!("D").unwrap(),
+///     note!("E").unwrap(),
+///     note!("F").unwrap(),
+///     note!("G").unwrap(),
+///     note!("A").unwrap(),
+///     note!("B").unwrap(),
+/// ]);
+/// 
+/// let scale = scale!(Major, 1);
+/// assert_eq!(scale.to_notes(note!("C").unwrap()), vec![
+///     note!("C").unwrap(),
+///     note!("D").unwrap(),
+///     note!("Eb").unwrap(),
+///     note!("F").unwrap(),
+///     note!("G").unwrap(),
+///     note!("A").unwrap(),
+///     note!("Bb").unwrap(),
+/// ]);
+/// ```
 #[derive(PartialEq, Eq, Clone)]
 pub struct Scale {
     intervals: Vec<Interval>,
