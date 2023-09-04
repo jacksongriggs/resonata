@@ -1,6 +1,6 @@
 [package]
 name = "resonata"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["Jackson Griggs"]
 edition = "2021"
 readme = "README.md"
