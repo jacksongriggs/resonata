@@ -1,16 +1,10 @@
-// TODO: pub mod chords;
+use intervals::Interval;
+
 pub mod error;
 pub mod intervals;
 pub mod keys;
 pub mod notes;
 pub mod scales;
-
-// TODO: pub use chords::Chord;
-pub use error::*;
-pub use intervals::{Interval, IntervalQuality, IntervalSize};
-pub use keys::Key;
-pub use notes::{Note, NoteName, Accidental};
-pub use scales::{Scale, ScaleEnumType};
 
 pub trait TransposeUp {
     type Output;

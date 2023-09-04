@@ -1,4 +1,4 @@
-use crate::{error::*, scales::*};
+use crate::{error::*, scales::*, intervals};
 use std::{
     fmt::{self, Debug, Display, Formatter},
     ops::{Add, AddAssign},
@@ -65,7 +65,9 @@ impl Add for Scale {
 
 impl AddAssign for Scale {
     fn add_assign(&mut self, rhs: Self) {
-        self.intervals.extend(rhs.intervals);
+        for interval in rhs.intervals {
+            let _ = self.add_interval(interval);
+        }
     }
 }
 

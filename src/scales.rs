@@ -309,6 +309,24 @@ impl Scale {
         &self.intervals
     }
 
+    /// Adds an interval to the scale. The interval is added to the last interval
+    /// in the scale. If the interval is invalid, an error is returned.
+    /// If the interval is valid, the scale is updated and Ok(()) is returned.
+    /// 
+    /// ### Examples
+    /// ```
+    /// use resonata::{notes::*, scales::*, intervals::*};
+    /// 
+    /// let mut scale = scale!("C, D, E, F, G").unwrap();
+    /// scale.add_interval(inv!("M2").unwrap()).unwrap();
+    /// assert_eq!(scale, scale!("C, D, E, F, G, A").unwrap());
+    /// ```
+    pub fn add_interval(&mut self, interval: Interval) -> Result<()> {
+        let new = *self.intervals.last().unwrap() + interval;
+        self.intervals.push(new?);
+        Ok(())
+    }
+
     /// Returns the parent scale of the scale if it matches a known scale type or mode.
     ///
     /// ### Examples
