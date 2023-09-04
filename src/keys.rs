@@ -1,4 +1,4 @@
-use crate::{error::ResonataError, notes::*, scales::Scale, name::NoteName, accidental::Accidental};
+use crate::{error::ResonataError, notes::*, scales::Scale};
 use std::ops::Index;
 mod utils;
 

@@ -7,10 +7,10 @@ pub mod scales;
 
 // TODO: pub use chords::Chord;
 pub use error::*;
-pub use intervals::*;
-pub use keys::*;
-pub use notes::*;
-pub use scales::*;
+pub use intervals::{Interval, IntervalQuality, IntervalSize};
+pub use keys::Key;
+pub use notes::{Note, NoteName, Accidental};
+pub use scales::{Scale, ScaleEnumType};
 
 pub trait TransposeUp {
     type Output;

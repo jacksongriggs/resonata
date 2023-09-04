@@ -1,23 +1,3 @@
-use crate::{
-    error::{NoteError, ResonataError},
-    intervals::*,
-    nope,
-};
-use accidental::*;
-use name::*;
-use std::str::FromStr;
-
-pub use crate::{note, pnote};
-pub use accidental::Accidental;
-pub use name::NoteName;
-
-pub mod accidental;
-pub mod name;
-mod tests;
-mod utils;
-
-type Result<T> = std::result::Result<T, ResonataError>;
-
 /// A musical note.
 ///
 /// Notes are represented by a note name and an accidental.
@@ -64,6 +44,26 @@ macro_rules! note {
         Note::new($name, $accidental)
     };
 }
+
+use crate::{
+    error::{NoteError, ResonataError},
+    intervals::*,
+    nope,
+};
+use accidental::*;
+use name::*;
+use std::str::FromStr;
+
+pub use crate::{note, pnote};
+pub use accidental::Accidental;
+pub use name::NoteName;
+
+pub mod accidental;
+pub mod name;
+mod tests;
+mod utils;
+
+type Result<T> = std::result::Result<T, ResonataError>;
 
 impl Note {
     /// Creates a new note from a note name and accidental.
