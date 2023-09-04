@@ -1,8 +1,7 @@
+use crate::intervals::{IntervalQuality, IntervalSize};
 use thiserror::Error;
 
-use crate::intervals::{IntervalQuality, IntervalSize};
 pub use crate::{err, nope, yep};
-
 pub use IntervalError::*;
 pub use NoteError::*;
 pub use ScaleError::*;

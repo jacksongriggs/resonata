@@ -1,13 +1,15 @@
-use std::str::FromStr;
-
 use crate::{
     error::{NoteError, ResonataError},
     intervals::*,
     nope,
 };
+use accidental::*;
+use name::*;
+use std::str::FromStr;
+
 pub use crate::{note, pnote};
-pub use accidental::*;
-pub use name::*;
+pub use accidental::Accidental;
+pub use name::NoteName;
 
 pub mod accidental;
 pub mod name;
@@ -276,7 +278,7 @@ impl Note {
     pub fn interval_to(&self, other: &Note) -> Interval {
         Interval::from_semitones(self.semitones_to(other))
             .unwrap()
-            .as_size(IntervalSize::from((other.name - self.name + 7) as i32), 0)
+            .as_size(size::IntervalSize::from((other.name - self.name + 7) as i32), 0)
             .unwrap()
     }
 
@@ -604,7 +606,10 @@ impl PitchedNote {
         let diatonic_distance = self.diatonic_distance_to(other);
         Interval::from_semitones(self.semitones_between(other))
             .unwrap()
-            .as_size(IntervalSize::from(diatonic_distance as u8), (diatonic_distance / 7) as u8)
+            .as_size(
+                size::IntervalSize::from(diatonic_distance as u8),
+                (diatonic_distance / 7) as u8,
+            )
             .unwrap()
     }
 

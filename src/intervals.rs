@@ -1,13 +1,15 @@
-use std::str::FromStr;
-
-pub use crate::inv;
 use crate::{
     err,
     error::{IntervalError, ResonataError},
     nope,
 };
-pub use quality::IntervalQuality::{self, *};
-pub use size::IntervalSize::{self, *};
+use quality::IntervalQuality::*;
+use size::IntervalSize::*;
+use std::str::FromStr;
+
+pub use crate::inv;
+pub use quality::IntervalQuality;
+pub use size::IntervalSize;
 
 pub mod quality;
 pub mod size;

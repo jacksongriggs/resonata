@@ -1,11 +1,9 @@
-pub use crate::key;
-use crate::{
-    notes::*,
-    scales::{types::ScaleType, Scale, ScaleEnumType}, error::{KeyError, ResonataError},
-};
-pub use std::collections::HashMap;
+use crate::{error::ResonataError, notes::*, scales::Scale, name::NoteName, accidental::Accidental};
 use std::ops::Index;
 mod utils;
+
+pub use crate::key;
+pub use std::collections::HashMap;
 
 type Result<T> = std::result::Result<T, ResonataError>;
 
@@ -31,10 +29,10 @@ type Result<T> = std::result::Result<T, ResonataError>;
 /// assert_eq!(key.pitch(NoteName::G).accidental(), Accidental::Natural);
 /// assert_eq!(key.pitch(NoteName::A).accidental(), Accidental::Natural);
 /// assert_eq!(key.pitch(NoteName::B).accidental(), Accidental::Natural);
-/// 
+///
 /// let key = key!("F#").unwrap();
 /// assert_eq!(key.root().unwrap(), note!("G").unwrap());
-/// 
+///
 /// let key = key.transposed_up(inv!("d3").unwrap());
 /// assert_eq!(key.root().unwrap(), note!("Bbb").unwrap());
 /// ```
@@ -78,11 +76,11 @@ impl Key {
     }
 
     /// Returns a key from the given string. The string should be a space- or comma-separated list of notes.
-    /// 
+    ///
     /// ### Examples
     /// ```
     /// use resonata::{notes::*, keys::*};
-    /// 
+    ///
     /// let key = Key::from_string("Eb F G Ab Bb C D").unwrap();
     /// assert_eq!(key.pitch(NoteName::C).accidental(), Accidental::Natural);
     /// assert_eq!(key.pitch(NoteName::D).accidental(), Accidental::Natural);
@@ -94,9 +92,8 @@ impl Key {
     /// ```
     pub fn from_string(s: &str) -> Result<Key> {
         let s = s.replace(",", " ");
-        let notes = s.split_whitespace()
-            .map(|s| Note::from_string(s))
-            .collect::<Result<Vec<Note>>>()?;
+        let notes =
+            s.split_whitespace().map(|s| Note::from_string(s)).collect::<Result<Vec<Note>>>()?;
         Ok(Key::new(notes))
     }
 
@@ -166,7 +163,7 @@ impl Key {
     /// let key = key!(note!("Fb").unwrap());
     /// assert!(key.to_scale_type().is_none());
     /// ```
-    pub fn to_scale_type(&self) -> Option<ScaleEnumType> {
+    pub fn to_scale_type(&self) -> Option<crate::scales::types::ScaleEnumType> {
         match self.to_scale().get_parent_scale_type() {
             Some((scale_type, _)) => Some(scale_type),
             None => None,
@@ -175,19 +172,19 @@ impl Key {
 
     /// Returns the root note of the key, if it exists.
     /// Otherwise, returns None.
-    /// 
+    ///
     /// ### Examples
     /// ```
     /// use resonata::{notes::*, keys::*, scales::*};
-    /// 
+    ///
     /// let key = key!(note!("F#").unwrap());
     /// assert_eq!(key.root().unwrap(), note!("G").unwrap());
     /// assert_eq!(key.to_scale_type().unwrap(), Major.into());
-    /// 
+    ///
     /// let key = key!(note!("G#").unwrap());
     /// assert_eq!(key.root().unwrap(), note!("A").unwrap());
     /// assert_eq!(key.to_scale_type().unwrap(), HarmonicMinor.into());
-    /// 
+    ///
     /// let key = key!(note!("Fb").unwrap());
     /// assert!(key.root().is_none());
     /// ```

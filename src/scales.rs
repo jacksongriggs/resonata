@@ -1,8 +1,9 @@
+use crate::{error::ResonataError, intervals::Interval, notes::*, TransposeUp};
 use std::{str::FromStr, vec};
+use types::*;
 
 pub use crate::scale;
-use crate::{error::ResonataError, intervals::Interval, notes::*, TransposeUp};
-pub use types::*;
+pub use types::{HarmonicMinorMode, MajorMode, MelodicMinorMode, ScaleEnumType, ScaleType};
 
 pub mod types;
 mod utils;
@@ -191,7 +192,7 @@ impl Scale {
     /// is used to create the interval between the last note and the root note.
     /// For example, a major scale would be [C, D, E, F, G, A, B, C]. Each note
     /// is assumed to be higher than the previous note.
-    /// 
+    ///
     /// This is the same as using scale!("C, D, E, F, G, A, B, C").
     ///
     /// To create a scale from a list of intervals, use `Scale::from_steps()`.
