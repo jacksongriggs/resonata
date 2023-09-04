@@ -8,30 +8,27 @@ use std::{
 impl FromStr for Scale {
     type Err = ResonataError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        // First attempt to parse as string of intervals\
-        if let Ok(intervals) = s
-            .split(", ")
-            .map(|interval| {
-                interval
-                    .parse::<Interval>()
-                    .map_err(|_| IntervalError::InvalidInterval)
-            })
-            .collect::<Result<Vec<Interval>, IntervalError>>()
-        {
-            return Ok(Scale { intervals });
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        let s = s.replace(",", " ");
+        
+        // First attempt to parse as a string of steps and execute the from_steps method
+        let steps: std::result::Result<Vec<i32>, _> = s.split_whitespace()
+            .map(str::parse)
+            .collect();
+        match steps {
+            Ok(steps) if steps.len() >= 2 => {
+                return Scale::from_steps(steps);
+            }
+            _ => (),
         }
 
-        // If that fails, try parsing as a string of note names and compute the intervals
-        let notes: Result<Vec<Note>, _> = s.split(", ").map(str::parse).collect();
+        // If that fails, try parsing as a string of note names and execute the from_notes method
+        let notes: std::result::Result<Vec<Note>, _> = s.split_whitespace()
+            .map(str::parse)
+            .collect();
         match notes {
             Ok(notes) if notes.len() >= 2 => {
-                let mut intervals = Vec::new();
-                for window in notes.windows(2) {
-                    intervals.push(window[1] - window[0]);
-                }
-                intervals.push(notes[0] - notes[notes.len() - 1]);
-                Ok(Scale { intervals })
+                Ok(Scale::from_notes(notes))
             }
             _ => nope!(InvalidScale),
         }
@@ -69,5 +66,29 @@ impl Add for Scale {
 impl AddAssign for Scale {
     fn add_assign(&mut self, rhs: Self) {
         self.intervals.extend(rhs.intervals);
+    }
+}
+
+impl From<ScaleType> for ScaleEnumType {
+    fn from(scale_type: ScaleType) -> Self {
+        ScaleEnumType::ScaleType(scale_type)
+    }
+}
+
+impl From<MajorMode> for ScaleEnumType {
+    fn from(major_mode: MajorMode) -> Self {
+        ScaleEnumType::MajorMode(major_mode)
+    }
+}
+
+impl From<HarmonicMinorMode> for ScaleEnumType {
+    fn from(harmonic_minor_mode: HarmonicMinorMode) -> Self {
+        ScaleEnumType::HarmonicMinorMode(harmonic_minor_mode)
+    }
+}
+
+impl From<MelodicMinorMode> for ScaleEnumType {
+    fn from(melodic_minor_mode: MelodicMinorMode) -> Self {
+        ScaleEnumType::MelodicMinorMode(melodic_minor_mode)
     }
 }

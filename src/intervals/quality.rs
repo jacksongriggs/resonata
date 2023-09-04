@@ -1,7 +1,11 @@
 use std::str::FromStr;
 pub use IntervalQuality::*;
 
+use crate::error::ResonataError;
+
 mod utils;
+
+type Result<T> = std::result::Result<T, ResonataError>;
 
 /// A musical interval quality
 /// The interval quality is the quality of the interval, which
@@ -34,11 +38,8 @@ impl IntervalQuality {
     /// assert_eq!(IQ::from_string("AA").unwrap(), Augmented(2));
     /// assert_eq!(IQ::from_string("ddd").unwrap(), Diminished(3));
     /// ```
-    pub fn from_string(s: &str) -> Option<Self> {
-        match IntervalQuality::from_str(s) {
-            Ok(quality) => Some(quality),
-            Err(_) => None,
-        }
+    pub fn from_string(s: &str) -> Result<Self> {
+        IntervalQuality::from_str(s)
     }
 
     /// Inverts the interval quality.

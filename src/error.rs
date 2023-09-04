@@ -1,5 +1,6 @@
 use thiserror::Error;
 
+use crate::intervals::{IntervalQuality, IntervalSize};
 pub use crate::{err, nope, yep};
 
 pub use IntervalError::*;
@@ -10,6 +11,8 @@ pub use ScaleError::*;
 pub enum IntervalError {
     #[error("Invalid interval")]
     InvalidInterval,
+    #[error("Invalid interval quality and size")]
+    InvalidIntervalQualityAndSize(IntervalQuality, IntervalSize),
     #[error("Invalid interval quality")]
     InvalidIntervalQuality,
     #[error("Invalid diminished count")]
@@ -17,9 +20,11 @@ pub enum IntervalError {
     #[error("Invalid augmented count")]
     InvalidAugmentedCount,
     #[error("Invalid interval size")]
-    InvalidIntervalSize,
+    InvalidIntervalSize(i16),
     #[error("Invalid interval format")]
     InvalidIntervalFormat,
+    #[error("Invalid alteration")]
+    InvalidAlterationDegree(u8),
 }
 
 #[derive(Error, Debug, PartialEq, Eq)]
@@ -27,13 +32,13 @@ pub enum NoteError {
     #[error("Invalid note")]
     InvalidNote,
     #[error("Invalid note name")]
-    InvalidNoteName,
+    InvalidNoteName(String),
     #[error("Invalid accidental")]
-    InvalidAccidental,
+    InvalidAccidental(String),
     #[error("Invalid accidental combination")]
-    InvalidAccidentalCombination,
+    InvalidAccidentalCombination(String),
     #[error("Invalid octave")]
-    InvalidOctave,
+    InvalidOctave(i8),
 }
 
 #[derive(Error, Debug, PartialEq, Eq)]

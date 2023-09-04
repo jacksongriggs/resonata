@@ -1,14 +1,20 @@
 use std::str::FromStr;
 
-use crate::intervals::*;
+use crate::{
+    error::{NoteError, ResonataError},
+    intervals::*,
+    nope,
+};
 pub use crate::{note, pnote};
 pub use accidental::*;
 pub use name::*;
 
 pub mod accidental;
-pub mod macros;
 pub mod name;
+mod tests;
 mod utils;
+
+type Result<T> = std::result::Result<T, ResonataError>;
 
 /// A musical note.
 ///
@@ -40,6 +46,23 @@ pub struct Note {
     accidental: Accidental,
 }
 
+/// A macro to create a note.
+#[macro_export]
+macro_rules! note {
+    // For note!("C");
+    ($name:literal) => {
+        Note::from_string($name)
+    };
+    // For note!(C);
+    ($name:expr) => {
+        Note::from_note_name($name)
+    };
+    // For note!(C, Flat(1));
+    ($name:expr, $accidental:expr) => {
+        Note::new($name, $accidental)
+    };
+}
+
 impl Note {
     /// Creates a new note from a note name and accidental.
     ///
@@ -61,10 +84,7 @@ impl Note {
 
     /// Creates a new note from a note name, with a natural accidental.
     pub fn from_note_name(name: NoteName) -> Self {
-        Note {
-            name,
-            accidental: Natural,
-        }
+        Note { name, accidental: Natural }
     }
 
     /// Creates a new note from a string.
@@ -83,11 +103,8 @@ impl Note {
     /// let d_sharp = Note::from_string("D#").unwrap();
     /// assert_eq!(d_sharp, note!(D, Sharp(1)));
     /// ```
-    pub fn from_string(s: &str) -> Option<Self> {
-        match Note::from_str(s) {
-            Ok(note) => Some(note),
-            Err(_) => None,
-        }
+    pub fn from_string(s: &str) -> Result<Self> {
+        Note::from_str(s)
     }
 
     /// Returns this note with the given octave. If the resulting
@@ -101,9 +118,9 @@ impl Note {
     /// assert_eq!(c.with_octave(4).unwrap(), pnote!(C, 4).unwrap());
     ///
     /// let bb = note!(B, Flat(1));
-    /// assert_eq!(bb.with_octave(9), None);
+    /// assert!(bb.with_octave(9).is_err());
     /// ```
-    pub fn with_octave(&self, octave: i8) -> Option<PitchedNote> {
+    pub fn with_octave(&self, octave: i8) -> Result<PitchedNote> {
         PitchedNote::new(self.name, self.accidental, octave)
     }
 
@@ -301,6 +318,31 @@ pub struct PitchedNote {
     octave: i8,
 }
 
+/// A macro to create a pitched note.
+#[macro_export]
+macro_rules! pnote {
+    // For pnote!("C4");
+    ($name:literal) => {
+        PitchedNote::from_string($name)
+    };
+    // For pnote!(C);
+    ($name:expr) => {
+        PitchedNote::build($name, 4)
+    };
+    // For pnote!(C, 4);
+    ($name:expr, $oct:literal) => {
+        PitchedNote::build($name, $oct)
+    };
+    // For pnote!(C, Flat(1));
+    ($name:expr, $accidental:expr) => {
+        PitchedNote::new($name, $accidental, 4)
+    };
+    // For pnote!(C, Flat(1), 4);
+    ($name:expr, $accidental:expr, $oct:literal) => {
+        PitchedNote::new($name, $accidental, $oct)
+    };
+}
+
 impl PitchedNote {
     /// Creates a new note from a note name, accidental and octave. If the resulting
     /// note is outside of the range C-1 to G9, None will be returned.
@@ -315,27 +357,27 @@ impl PitchedNote {
     /// assert_eq!(c4.octave(), 4);
     ///
     /// let g_sharp_9 = PitchedNote::new(G, Sharp(1), 9);
-    /// assert_eq!(g_sharp_9, None);
+    /// assert!(g_sharp_9.is_err());
     /// ```
-    pub fn new(name: NoteName, accidental: Accidental, octave: i8) -> Option<Self> {
+    pub fn new(name: NoteName, accidental: Accidental, octave: i8) -> Result<Self> {
         let note = Note::new(name, accidental);
 
         match octave {
             -1..=8 => (),
             9 => {
                 if note.to_chromatic_scale_degree() > 7 {
-                    return None;
+                    nope!(NoteError::InvalidOctave(octave));
                 }
             }
-            _ => return None,
+            _ => nope!(NoteError::InvalidOctave(octave)),
         }
 
-        Some(PitchedNote { note, octave })
+        Ok(PitchedNote { note, octave })
     }
 
     /// Creates a new note from a note name and octave, with a natural accidental. If the resulting
     /// note is outside of the range C-1 to G9, None will be returned.
-    pub fn build(name: NoteName, octave: i8) -> Option<Self> {
+    pub fn build(name: NoteName, octave: i8) -> Result<Self> {
         Self::new(name, Natural, octave)
     }
 
@@ -358,13 +400,10 @@ impl PitchedNote {
     /// assert_eq!(e_flat_2, pnote!(E, Flat(1), 2).unwrap());
     ///
     /// let resonata = PitchedNote::from_string("Resonata");
-    /// assert_eq!(resonata, None);
+    /// assert!(resonata.is_err());
     /// ```
-    pub fn from_string(s: &str) -> Option<Self> {
-        match PitchedNote::from_str(s) {
-            Ok(note) => Some(note),
-            Err(_) => None,
-        }
+    pub fn from_string(s: &str) -> Result<Self> {
+        PitchedNote::from_str(s)
     }
 
     /// Returns the midi note number of the note.
@@ -412,7 +451,7 @@ impl PitchedNote {
     /// let c9 = pnote!(C, 9).unwrap();
     /// assert_eq!(PitchedNote::from_midi_number(120).unwrap(), c9);
     /// ```
-    pub fn from_midi_number(number: u8) -> Option<Self> {
+    pub fn from_midi_number(number: u8) -> Result<Self> {
         let octave = (number / 12) as i8 - 1;
         let note = Note::from_chromatic_scale_degree(number % 12);
         PitchedNote::new(note.name, note.accidental, octave)
@@ -486,16 +525,16 @@ impl PitchedNote {
     /// The number of diatonic steps is the number of note names moved.
     /// For example, moving C4 by +2 diatonic steps would result in E4.
     /// The resulting note will have the same accidental as this note.
-    /// 
+    ///
     /// ### Examples
     /// ```
     /// use resonata::notes::*;
-    /// 
+    ///
     /// let note = pnote!("C4").unwrap();
     /// assert_eq!(note.moved_by(2).unwrap(), pnote!("E4").unwrap());
     /// assert_eq!(note.moved_by(-2).unwrap(), pnote!("A3").unwrap());
     /// ```
-    pub fn moved_by(&self, steps: i32) -> Option<Self> {
+    pub fn moved_by(&self, steps: i32) -> Result<Self> {
         let position = self.note.name as i32 + steps;
         let mut octave = self.octave;
         match position {
@@ -512,7 +551,9 @@ impl PitchedNote {
     /// The enharmonic equivalent is the note with the same pitch,
     /// but with a different name and accidental.
     ///
-    /// Distance is measured in white keys, and can be negative.
+    /// Distance is measured in note names ignoring the accidental, and can be negative,
+    /// i.e. moving from C to B is a distance of -1, and moving from C to E is a distance of 2.
+    ///
     ///
     /// ### Examples
     /// ```
@@ -528,7 +569,7 @@ impl PitchedNote {
     /// assert_eq!(e_dbl_sharp_2.to_enharmonic_equivalent(2).unwrap(), g_flat_2);
     /// assert_eq!(g_flat_2.to_enharmonic_equivalent(-2).unwrap(), e_dbl_sharp_2);
     /// ```
-    pub fn to_enharmonic_equivalent(&self, dist: i32) -> Option<Self> {
+    pub fn to_enharmonic_equivalent(&self, dist: i32) -> Result<Self> {
         let equivalent = self.note.to_enharmonic_equivalent(dist);
 
         if dist > 0 && equivalent.name < self.note.name {
@@ -563,10 +604,7 @@ impl PitchedNote {
         let diatonic_distance = self.diatonic_distance_to(other);
         Interval::from_semitones(self.semitones_between(other))
             .unwrap()
-            .as_size(
-                IntervalSize::from(diatonic_distance as u8),
-                (diatonic_distance / 7) as u8,
-            )
+            .as_size(IntervalSize::from(diatonic_distance as u8), (diatonic_distance / 7) as u8)
             .unwrap()
     }
 

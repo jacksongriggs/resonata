@@ -44,7 +44,7 @@ impl NoteName {
             9 => A,
             10 => A,
             11 => B,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }

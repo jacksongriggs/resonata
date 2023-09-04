@@ -11,5 +11,7 @@ license = "MIT"
 
 [dependencies]
 lazy_static = "1.4.0"
+rand = "0.8.5"
 regex = "1.9.4"
 thiserror = "1.0.47"
+

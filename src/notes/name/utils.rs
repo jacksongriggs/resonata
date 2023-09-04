@@ -1,8 +1,8 @@
-use crate::{notes::*, error::*};
+use crate::{error::*, notes::*};
 use std::{
     fmt::{self, Debug, Display, Formatter},
-    str::FromStr,
     ops::{Add, AddAssign, Sub, SubAssign},
+    str::FromStr,
 };
 
 impl Iterator for NoteName {
@@ -99,7 +99,7 @@ impl SubAssign<i32> for NoteName {
 impl FromStr for NoteName {
     type Err = ResonataError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_ascii_lowercase().as_str() {
             "c" => Ok(C),
             "d" => Ok(D),
@@ -108,7 +108,7 @@ impl FromStr for NoteName {
             "g" => Ok(G),
             "a" => Ok(A),
             "b" => Ok(B),
-            _ => nope!(InvalidNoteName),
+            _ => nope!(InvalidNoteName(s.to_string())),
         }
     }
 }

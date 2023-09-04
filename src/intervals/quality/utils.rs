@@ -1,4 +1,4 @@
-use crate::{intervals::*, error::*};
+use crate::{error::*, intervals::*};
 use std::{
     fmt::{self, Debug, Display, Formatter},
     str::FromStr,
@@ -19,7 +19,7 @@ impl From<IntervalQuality> for i8 {
 impl FromStr for IntervalQuality {
     type Err = ResonataError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         if s.is_empty() {
             nope!(InvalidIntervalQuality);
         }

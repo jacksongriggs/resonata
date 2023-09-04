@@ -1,4 +1,4 @@
-use crate::{intervals::*, error::*};
+use crate::{error::*, intervals::*};
 use std::{
     fmt::{self, Debug, Display, Formatter},
     ops::{Add, AddAssign, Sub, SubAssign},
@@ -37,7 +37,7 @@ impl From<u8> for IntervalSize {
 
 impl FromStr for IntervalSize {
     type Err = ResonataError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s {
             "U" => Ok(Unison),
             "2" => Ok(Second),
@@ -46,7 +46,7 @@ impl FromStr for IntervalSize {
             "5" => Ok(Fifth),
             "6" => Ok(Sixth),
             "7" => Ok(Seventh),
-            _ => nope!(InvalidIntervalSize),
+            _ => nope!(InvalidIntervalFormat),
         }
     }
 }

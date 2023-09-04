@@ -1,8 +1,8 @@
-use crate::{notes::*, error::*};
+use crate::{error::*, notes::*};
 use std::{
     fmt::{self, Debug, Display, Formatter},
+    ops::{Add, AddAssign, Sub, SubAssign},
     str::FromStr,
-    ops::{Add, AddAssign, Sub, SubAssign}
 };
 
 impl From<i32> for Accidental {
@@ -47,7 +47,7 @@ impl SubAssign<i32> for Accidental {
 
 impl FromStr for Accidental {
     type Err = ResonataError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let mut sharp_count = 0;
         let mut flat_count = 0;
 
@@ -60,15 +60,15 @@ impl FromStr for Accidental {
                     if sharp_count == 0 && flat_count == 0 {
                         return Ok(Natural);
                     } else {
-                        nope!(InvalidAccidentalCombination)
+                        nope!(InvalidAccidentalCombination(s.to_string()))
                     }
                 }
-                _ => nope!(InvalidAccidental),
+                _ => nope!(InvalidAccidental(s.to_string())),
             }
         }
 
         if sharp_count > 0 && flat_count > 0 {
-            nope!(InvalidAccidentalCombination)
+            nope!(InvalidAccidentalCombination(s.to_string()))
         } else if flat_count > 0 {
             Ok(Flat(flat_count))
         } else {
@@ -102,4 +102,3 @@ impl Debug for Accidental {
         write!(f, "{}", self.to_string())
     }
 }
-

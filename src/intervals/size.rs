@@ -2,7 +2,11 @@ use std::str::FromStr;
 
 pub use IntervalSize::*;
 
+use crate::error::ResonataError;
+
 mod utils;
+
+type Result<T> = std::result::Result<T, ResonataError>;
 
 /// A musical interval size
 /// To get an octave or above, use the `octaves` field
@@ -22,11 +26,8 @@ pub enum IntervalSize {
 impl IntervalSize {
     /// Returns the interval size from the given string, if the string is valid.
     /// Valid strings are "U", "2", "3", "4", "5", "6", "7".
-    pub fn from_string(s: &str) -> Option<Self> {
-        match IntervalSize::from_str(s) {
-            Ok(size) => Some(size),
-            Err(_) => None,
-        }
+    pub fn from_string(s: &str) -> Result<Self> {
+        IntervalSize::from_str(s)
     }
 
     /// Returns the number of semitones in the interval size, based on the C major scale

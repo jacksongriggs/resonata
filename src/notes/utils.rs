@@ -25,12 +25,21 @@ impl TransposeUp for Note {
     /// let note = Note::from_string("D#").unwrap();
     /// let new_note = note.transposed_up(Interval::from_string("A4").unwrap());
     /// assert_eq!(new_note, Note::from_string("G##").unwrap());
+    /// 
+    /// let note = Note::from_string("C").unwrap();
+    /// let new_note = note.transposed_up(Interval::from_string("P8").unwrap());
+    /// assert_eq!(new_note, Note::from_string("C").unwrap());
     /// ```
     fn transposed_up(&self, interval: Interval) -> Self {
         let mut new = self.clone();
-        let semitones = interval.to_semitones();
+        
+        let semitones = interval.to_semitones() % 12;
         new.name += interval.size();
-        new.accidental += semitones - self.interval_to(&new).to_semitones();
+        
+        let new_semitones = self.interval_to(&new).to_semitones() % 12;
+        if semitones != new_semitones {
+            new.accidental += semitones - new_semitones;
+        }
         new
     }
 }
@@ -69,7 +78,7 @@ impl From<PitchedNote> for u8 {
 }
 
 impl TransposeUp for PitchedNote {
-    type Output = Option<Self>;
+    type Output = Result<Self>;
 
     /// Transpose the note up by the given interval.
     ///
@@ -85,49 +94,39 @@ impl TransposeUp for PitchedNote {
     /// assert_eq!(note, pnote!("Cb5").unwrap());
     /// ```
     fn transposed_up(&self, interval: Interval) -> Self::Output {
-        let mut new = self.moved_by(interval.to_diatonic_steps());
-        match new {
-            Some(ref mut new) => {
-                let semitones = interval.to_semitones();
-                let diff = semitones - self.interval_to(&new).to_semitones();
-                new.note.accidental += diff;
-                Some(new.clone())
-            }
-            None => None,
-        }
+        let mut new = self.moved_by(interval.to_diatonic_steps())?;
+        let semitones = interval.to_semitones();
+        let diff = semitones - self.interval_to(&new).to_semitones();
+        new.note.accidental += diff;
+        Ok(new.clone())
     }
 }
 
 impl TransposeDown for PitchedNote {
-    type Output = Option<Self>;
+    type Output = Result<Self>;
 
     /// Transpose the note down by the given interval.
-    /// 
+    ///
     /// ### Examples
     /// ```
     /// use resonata::{notes::*, intervals::*, TransposeDown};
-    /// 
+    ///
     /// let note = pnote!("C4").unwrap()
     ///     .transposed_down(inv!("M3").unwrap())
     ///     .unwrap();
     /// assert_eq!(note, pnote!("Ab3").unwrap());
-    /// 
+    ///
     /// let note = pnote!("F#4").unwrap()
     ///     .transposed_down(inv!("A5").unwrap())
     ///     .unwrap();
     /// assert_eq!(note, pnote!("Bb3").unwrap());
     /// ```
     fn transposed_down(&self, interval: Interval) -> Self::Output {
-        let mut new = self.moved_by(-interval.to_diatonic_steps());
-        match new {
-            Some(ref mut new) => {
-                let semitones = interval.to_semitones();
-                let diff = semitones - new.interval_to(&self).to_semitones();
-                new.note.accidental -= diff;
-                Some(new.clone())
-            }
-            None => None,
-        }
+        let mut new = self.moved_by(-interval.to_diatonic_steps())?;
+        let semitones = interval.to_semitones();
+        let diff = semitones - new.interval_to(&self).to_semitones();
+        new.note.accidental -= diff;
+        Ok(new.clone())
     }
 }
 
@@ -171,7 +170,7 @@ impl SubAssign<Interval> for Note {
 }
 
 impl Add<Interval> for PitchedNote {
-    type Output = Option<Self>;
+    type Output = Result<Self>;
     fn add(self, rhs: Interval) -> Self::Output {
         self.transposed_up(rhs)
     }
@@ -191,7 +190,7 @@ impl Sub for PitchedNote {
 }
 
 impl Sub<Interval> for PitchedNote {
-    type Output = Option<Self>;
+    type Output = Result<Self>;
     fn sub(self, rhs: Interval) -> Self::Output {
         self.transposed_down(rhs)
     }
@@ -206,7 +205,7 @@ impl SubAssign<Interval> for PitchedNote {
 impl FromStr for Note {
     type Err = ResonataError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match NOTE_RE.captures(s) {
             Some(cap) => {
                 let name = NoteName::from_str(&cap[1])?;
@@ -219,7 +218,7 @@ impl FromStr for Note {
 
                 Ok(Self { name, accidental })
             }
-            None => err!(InvalidNoteName),
+            None => err!(InvalidNoteName(s.to_string())),
         }
     }
 }
@@ -239,25 +238,25 @@ impl Debug for Note {
 }
 
 lazy_static! {
-    static ref PITCHED_NOTE_RE: Regex = Regex::new("^([A-Ga-g][#x𝄪b♯♯♭♭♮]*)(-?[0-9]*)$").unwrap();
+    static ref PITCHED_NOTE_RE: Regex = Regex::new("^([A-Ga-g][#x𝄪b♯♭♮]*)(-?[0-9]*)$").unwrap();
 }
 
 impl FromStr for PitchedNote {
     type Err = ResonataError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match PITCHED_NOTE_RE.captures(s) {
             Some(cap) => {
                 let note = Note::from_str(&cap[1])?;
                 let octave: i8 = cap[2].parse().unwrap_or(4);
 
                 if octave < -1 || octave > 9 {
-                    nope!(InvalidOctave);
+                    nope!(InvalidOctave(octave));
                 }
 
                 Ok(Self { note, octave })
             }
-            None => nope!(InvalidNoteName),
+            None => nope!(InvalidNoteName(s.to_string())),
         }
     }
 }

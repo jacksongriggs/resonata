@@ -1,37 +1,38 @@
-use std::str::FromStr;
+use std::{str::FromStr, vec};
 
-use crate::{intervals::Interval, notes::*};
-pub use types::ScaleType::*;
 pub use crate::scale;
+use crate::{error::ResonataError, intervals::Interval, notes::*, TransposeUp};
+pub use types::*;
 
-pub mod macros;
 pub mod types;
 mod utils;
+
+type Result<T> = std::result::Result<T, ResonataError>;
 
 /// A musical scale
 /// Scale are represented by an optional root note and a list of intervals
 ///
-/// Intervals are relative to the root note, so a major scale would be
-/// [Unison, MajorSecond, MajorThird, PerfectFourth, PerfectFifth, MajorSixth, MajorSeventh]
+/// Intervals are relative to the root, which is an implied unison, so a major scale
+/// would be represented by [M2, M3, P4, P5, M6, M7, P8]
 ///
 /// A macro is provided to make creating scales easier:
-/// 
+///
 /// scale!(string)  
-/// 
+///
 /// scale!(type)  
-/// 
+///
 /// scale!(type, rotation)  
-/// 
+///
 /// ### Examples
 /// ```
 /// use resonata::{notes::*, scales::*};
-/// 
+///
 /// let scale = scale!("2, 2, 1, 2, 2, 2, 1").unwrap();
 /// assert_eq!(scale, Scale::major());
-/// 
-/// let scale = scale!("C, D, E, F, G, A, B").unwrap();
+///
+/// let scale = scale!("C, D, E, F, G, A, B, C").unwrap();
 /// assert_eq!(scale, Scale::major());
-/// 
+///
 /// let scale = scale!(Major);
 /// assert_eq!(scale.to_notes(note!("C").unwrap()), vec![
 ///     note!("C").unwrap(),
@@ -42,7 +43,7 @@ mod utils;
 ///     note!("A").unwrap(),
 ///     note!("B").unwrap(),
 /// ]);
-/// 
+///
 /// let scale = scale!(Major, 1);
 /// assert_eq!(scale.to_notes(note!("C").unwrap()), vec![
 ///     note!("C").unwrap(),
@@ -59,13 +60,24 @@ pub struct Scale {
     intervals: Vec<Interval>,
 }
 
+/// A macro to create a scale from a root note and a scale type.
+#[macro_export]
+macro_rules! scale {
+    ($str:literal) => {
+        Scale::from_string($str)
+    };
+    ($scale_type:expr) => {
+        Scale::from_steps($scale_type.as_steps()).unwrap()
+    };
+    ($scale_type:expr, $rot:expr) => {
+        Scale::from_steps($scale_type.as_steps()).unwrap().rotated($rot)
+    };
+}
+
 impl Scale {
     /// Attempts to create a scale from the given string.
-    pub fn from_string(s: &str) -> Option<Scale> {
-        match Scale::from_str(s) {
-            Ok(scale) => Some(scale),
-            Err(_) => None,
-        }
+    pub fn from_string(s: &str) -> Result<Scale> {
+        Scale::from_str(s)
     }
 
     /// Creates a major scale
@@ -126,56 +138,139 @@ impl Scale {
     /// Creates a scale from a list of steps
     /// Steps are relative to the previous note
     /// For example, a major scale would be [2, 2, 1, 2, 2, 2, 1]
-    pub fn from_steps(steps: Vec<i32>) -> Option<Self> {
+    /// Internally, this is converted to [M2, M3, P4, P5, M6, M7, P8]
+    ///
+    /// ### Examples
+    /// ```
+    /// use resonata::{notes::*, scales::*, intervals::*};
+    ///
+    /// let scale = Scale::from_steps(vec![2, 2, 1, 2, 2, 2, 1]).unwrap();
+    /// assert_eq!(scale.intervals(), &vec![
+    ///     inv!("M2").unwrap(),
+    ///     inv!("M3").unwrap(),
+    ///     inv!("P4").unwrap(),
+    ///     inv!("P5").unwrap(),
+    ///     inv!("M6").unwrap(),
+    ///     inv!("M7").unwrap(),
+    ///     inv!("P8").unwrap()
+    /// ]);
+    /// ```
+    pub fn from_steps(steps: Vec<i32>) -> Result<Self> {
         let mut intervals = Vec::new();
+        let mut semitones = 0;
         for step in steps {
-            match Interval::from_semitones(step) {
-                Some(interval) => intervals.push(interval),
-                None => return None,
-            }
+            semitones += step;
+            intervals.push(Interval::from_semitones(semitones)?);
         }
 
-        Some(Self { intervals })
+        Ok(Self { intervals })
     }
 
     /// Returns the steps of the scale
     /// Steps are relative to the previous note
     /// For example, a major scale would be [2, 2, 1, 2, 2, 2, 1]
+    ///
+    /// ### Examples
+    /// ```
+    /// use resonata::{notes::*, scales::*, intervals::*};
+    ///
+    /// let scale = Scale::major();
+    /// assert_eq!(scale.to_steps(), vec![2, 2, 1, 2, 2, 2, 1]);
+    /// ```
     pub fn to_steps(&self) -> Vec<i32> {
-        let mut steps = Vec::new();
-        for interval in &self.intervals {
-            steps.push(interval.to_semitones());
+        let mut steps = vec![self.intervals[0].to_semitones()];
+        for window in self.intervals.windows(2) {
+            steps.push(window[1].to_semitones() - window[0].to_semitones());
         }
 
         steps
     }
 
-    /// Creates a scale from a list of notes
+    /// Creates a scale from a list of notes. The first note is the root note
+    /// and the rest of the notes are used to create the intervals. The last note
+    /// is used to create the interval between the last note and the root note.
+    /// For example, a major scale would be [C, D, E, F, G, A, B, C]. Each note
+    /// is assumed to be higher than the previous note.
+    /// 
+    /// This is the same as using scale!("C, D, E, F, G, A, B, C").
+    ///
+    /// To create a scale from a list of intervals, use `Scale::from_steps()`.
+    ///
+    /// ### Examples
+    /// ```
+    /// use resonata::{notes::*, scales::*};
+    ///
+    /// let scale = Scale::from_notes(vec![
+    ///     note!("C").unwrap(),
+    ///     note!("D").unwrap(),
+    ///     note!("E").unwrap(),
+    ///     note!("F").unwrap(),
+    ///     note!("G").unwrap(),
+    ///     note!("A").unwrap(),
+    ///     note!("B").unwrap(),
+    ///     note!("C").unwrap(),
+    /// ]);
+    /// assert_eq!(scale, Scale::major());
+    ///
+    /// let scale = Scale::from_notes(vec![
+    ///     note!("C").unwrap(),
+    ///     note!("D").unwrap(),
+    ///     note!("E").unwrap(),
+    ///     note!("F#").unwrap(),
+    ///     note!("G").unwrap(),
+    /// ]);
+    /// assert_eq!(scale.to_steps(), vec![2, 2, 2, 1]);
+    ///
+    /// let scale = Scale::from_notes(vec![
+    ///     note!("C").unwrap(),
+    ///     note!("C").unwrap(),
+    ///     note!("D").unwrap(),
+    ///     note!("E").unwrap(),
+    ///     note!("A").unwrap(),
+    /// ]);
+    /// assert_eq!(scale.to_steps(), vec![12, 2, 2, 5]);
+    /// ```
     pub fn from_notes(mut notes: Vec<Note>) -> Scale {
         if notes.len() == 0 {
-            return Self {
-                intervals: Vec::new(),
-            };
+            return Self { intervals: Vec::new() };
         }
-
-        notes.sort();
 
         let mut intervals = Vec::new();
         let root = notes.remove(0);
+        let mut last_steps = 0;
         for note in notes {
-            intervals.push(root - note);
+            let mut steps = note.to_chromatic_scale_degree() - root.to_chromatic_scale_degree();
+            while steps <= last_steps {
+                steps += 12;
+            }
+            last_steps = steps;
+            intervals.push(Interval::from_semitones(last_steps as i32).unwrap());
         }
 
         Self { intervals }
     }
 
     /// Returns the notes of the scale from the given root note
+    ///
+    /// ### Examples
+    /// ```
+    /// use resonata::{notes::*, scales::*};
+    ///
+    /// let scale = scale!("C, D, E, F#, G, A, B, C").unwrap();
+    /// assert_eq!(scale.to_notes(note!("C").unwrap()), vec![
+    ///     note!("C").unwrap(),
+    ///     note!("D").unwrap(),
+    ///     note!("E").unwrap(),
+    ///     note!("F#").unwrap(),
+    ///     note!("G").unwrap(),
+    ///     note!("A").unwrap(),
+    ///     note!("B").unwrap(),
+    /// ]);
+    /// ```
     pub fn to_notes(&self, root: Note) -> Vec<Note> {
-        let mut notes = Vec::new();
-        let mut last_note = root;
-        for interval in &self.intervals {
-            notes.push(last_note);
-            last_note += *interval;
+        let mut notes = vec![root];
+        for interval in self.intervals.iter().take(self.intervals.len() - 1) {
+            notes.push(root.transposed_up(*interval));
         }
         notes
     }
@@ -211,5 +306,68 @@ impl Scale {
     /// Returns the intervals in the scale
     pub fn intervals(&self) -> &Vec<Interval> {
         &self.intervals
+    }
+
+    /// Returns the parent scale of the scale if it matches a known scale type or mode.
+    ///
+    /// ### Examples
+    /// ```
+    /// use resonata::{notes::*, scales::*};
+    ///
+    /// assert_eq!(scale!("C, D, E, F, G, A, B, C").unwrap().get_parent_scale_type(), Some((Major.into(), 0)));
+    /// assert_eq!(scale!("C, D, E, F#, G, A, B, C").unwrap().get_parent_scale_type(), Some((Major.into(), 4)));
+    /// assert_eq!(scale!("C, D, E, F#, G#, A, B, C").unwrap().get_parent_scale_type(), Some((MelodicMinor.into(), 5)));
+    /// ```
+    pub fn get_parent_scale_type(&self) -> Option<(ScaleEnumType, usize)> {
+        // Creating an all rotations of current scale as a Vec
+        let all_rotations: Vec<Scale> =
+            (0..self.intervals.len()).map(|i| self.rotated(i as i8)).collect();
+
+        // Checking if any of the rotations matches a known scale
+        for (name, scale) in KNOWN_SCALES {
+            if all_rotations.contains(&scale()) {
+                return Some((*name, all_rotations.iter().position(|s| s == &scale()).unwrap()));
+            }
+        }
+        None
+    }
+
+    /// Returns true if the scale matches a known scale type
+    ///
+    /// ### Examples
+    /// ```
+    /// use resonata::{notes::*, scales::*};
+    ///
+    /// assert!(scale!("C, D, E, F, G, A, B, C").unwrap().is_known_scale());
+    /// assert!(scale!("C, D, E, F#, G, A, B, C").unwrap().is_known_scale());
+    /// assert!(scale!("C, D, E, F#, G#, A, B, C").unwrap().is_known_scale());
+    /// assert!(scale!("C, D, E, F, G, A, Bb, C").unwrap().is_known_scale());
+    /// assert!(!scale!("C, D, E, F, G, A, Bbb, C").unwrap().is_known_scale());
+    /// ```
+    pub fn is_known_scale(&self) -> bool {
+        self.get_known_scale_type().is_some()
+    }
+
+    /// Returns the name of the scale if it matches a known scale type or mode
+    ///
+    /// ### Examples
+    /// ```
+    /// use resonata::{notes::*, scales::*};
+    ///
+    /// assert_eq!(scale!("C, D, E, F, G, A, B, C").unwrap().get_known_scale_type(), Some(Major.into()));
+    /// assert_eq!(scale!("C, D, E, F#, G, A, B, C").unwrap().get_known_scale_type(), Some(Lydian.into()));
+    /// assert_eq!(scale!("C, D, E, F#, G#, A, B, C").unwrap().get_known_scale_type(), Some(LydianAugmented.into()));
+    /// assert_eq!(scale!("C, D, E, F, G, A, Bb, C").unwrap().get_known_scale_type(), Some(Mixolydian.into()));
+    /// assert_eq!(scale!("C, D, E, F, G, A, Bbb, C").unwrap().get_known_scale_type(), None);
+    /// ```
+    pub fn get_known_scale_type(&self) -> Option<ScaleEnumType> {
+        for scales in ALL_SCALES {
+            for (name, scale) in *scales {
+                if self == &scale() {
+                    return Some(*name);
+                }
+            }
+        }
+        None
     }
 }
