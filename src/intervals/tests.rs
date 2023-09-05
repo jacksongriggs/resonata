@@ -38,6 +38,18 @@ mod tests {
     }
 
     #[test]
+    fn test_from_str() {
+        let major_third = inv!(Quality::Major, Size::Third).unwrap();
+        assert_eq!(major_third, "M3".parse::<Interval>().unwrap());
+
+        let augmented_octave = inv!(Quality::Augmented(1), Size::Unison, 1).unwrap();
+        assert_eq!(augmented_octave, "A8".parse::<Interval>().unwrap());
+        
+        let invalid_interval = "P3".parse::<Interval>();
+        assert!(invalid_interval.is_err());
+    }
+
+    #[test]
     fn test_random() {
         use rand::Rng;
         let mut rng = rand::thread_rng();
@@ -64,36 +76,34 @@ mod tests {
         assert_eq!(dim_2.semitones(), unis.semitones());
     }
 
-    use IntervalQuality as IQ;
-
     #[test]
-    fn test_from_string() {
-        assert_eq!(IQ::from_string("M").unwrap(), Major);
-        assert_eq!(IQ::from_string("m").unwrap(), Minor);
-        assert_eq!(IQ::from_string("P").unwrap(), Perfect);
-        assert_eq!(IQ::from_string("A").unwrap(), Augmented(1));
-        assert_eq!(IQ::from_string("d").unwrap(), Diminished(1));
-        assert_eq!(IQ::from_string("AA").unwrap(), Augmented(2));
-        assert_eq!(IQ::from_string("ddd").unwrap(), Diminished(3));
+    fn test_interval_quality_from_str() {
+        assert_eq!("M".parse::<Quality>().unwrap(), Quality::Major);
+        assert_eq!("m".parse::<Quality>().unwrap(), Quality::Minor);
+        assert_eq!("P".parse::<Quality>().unwrap(), Quality::Perfect);
+        assert_eq!("A".parse::<Quality>().unwrap(), Quality::Augmented(1));
+        assert_eq!("d".parse::<Quality>().unwrap(), Quality::Diminished(1));
+        assert_eq!("AA".parse::<Quality>().unwrap(), Quality::Augmented(2));
+        assert_eq!("ddd".parse::<Quality>().unwrap(), Quality::Diminished(3));
     }
 
     #[test]
-    fn test_invert() {
-        assert_eq!(Diminished(1).invert(), Augmented(1));
-        assert_eq!(Augmented(3).invert(), Diminished(3));
-        assert_eq!(Minor.invert(), Major);
-        assert_eq!(Major.invert(), Minor);
-        assert_eq!(Perfect.invert(), Perfect);
+    fn test_interval_quality_invert() {
+        assert_eq!(Quality::Diminished(1).invert(), Quality::Augmented(1));
+        assert_eq!(Quality::Augmented(3).invert(), Quality::Diminished(3));
+        assert_eq!(Quality::Minor.invert(), Quality::Major);
+        assert_eq!(Quality::Major.invert(), Quality::Minor);
+        assert_eq!(Quality::Perfect.invert(), Quality::Perfect);
     }
 
     #[test]
-    fn test_to_string() {
-        assert_eq!(Major.to_string(), "M");
-        assert_eq!(Minor.to_string(), "m");
-        assert_eq!(Perfect.to_string(), "P");
-        assert_eq!(Augmented(1).to_string(), "A");
-        assert_eq!(Diminished(1).to_string(), "d");
-        assert_eq!(Augmented(2).to_string(), "AA");
-        assert_eq!(Diminished(3).to_string(), "ddd");
+    fn test_interval_quality_to_string() {
+        assert_eq!(Quality::Major.to_string(), "M");
+        assert_eq!(Quality::Minor.to_string(), "m");
+        assert_eq!(Quality::Perfect.to_string(), "P");
+        assert_eq!(Quality::Augmented(1).to_string(), "A");
+        assert_eq!(Quality::Diminished(1).to_string(), "d");
+        assert_eq!(Quality::Augmented(2).to_string(), "AA");
+        assert_eq!(Quality::Diminished(3).to_string(), "ddd");
     }
 }

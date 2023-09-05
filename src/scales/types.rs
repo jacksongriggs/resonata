@@ -1,13 +1,131 @@
-use std::{
-    fmt::{self, Display, Formatter},
-    vec,
-};
-pub use ScaleType::*;
-pub use MajorMode::*;
 pub use HarmonicMinorMode::*;
+pub use MajorMode::*;
 pub use MelodicMinorMode::*;
+pub use ScaleType::*;
+
+pub mod utils;
 
 use super::Scale;
+
+impl Scale {
+    /// Creates a major scale
+    pub fn major() -> Self {
+        Self::from_steps(Major.as_steps()).unwrap()
+    }
+
+    /// Creates a minor scale
+    pub fn minor() -> Self {
+        Self::from_steps(Minor.as_steps()).unwrap()
+    }
+
+    /// Creates a harmonic minor scale
+    pub fn harmonic_minor() -> Self {
+        Self::from_steps(HarmonicMinor.as_steps()).unwrap()
+    }
+
+    /// Creates a melodic minor scale
+    pub fn melodic_minor() -> Self {
+        Self::from_steps(MelodicMinor.as_steps()).unwrap()
+    }
+
+    /// Creates a major pentatonic scale
+    pub fn major_pentatonic() -> Self {
+        Self::from_steps(MajorPentatonic.as_steps()).unwrap()
+    }
+
+    /// Creates a minor pentatonic scale
+    pub fn minor_pentatonic() -> Self {
+        Self::from_steps(MinorPentatonic.as_steps()).unwrap()
+    }
+
+    /// Creates a minor blues scale
+    pub fn minor_blues() -> Self {
+        Self::from_steps(MinorBlues.as_steps()).unwrap()
+    }
+
+    /// Creates a major blues scale
+    pub fn major_blues() -> Self {
+        Self::from_steps(MajorBlues.as_steps()).unwrap()
+    }
+
+    /// Creates a whole tone scale
+    pub fn whole_tone() -> Self {
+        Self::from_steps(WholeTone.as_steps()).unwrap()
+    }
+
+    /// Creates a diminished scale
+    pub fn diminished() -> Self {
+        Self::from_steps(Diminished.as_steps()).unwrap()
+    }
+
+    /// Creates a chromatic scale
+    pub fn chromatic() -> Self {
+        Self::from_steps(Chromatic.as_steps()).unwrap()
+    }
+
+    /// Returns the parent scale of the scale if it matches a known scale type or mode.
+    ///
+    /// ### Examples
+    /// ```
+    /// use resonata::{notes::*, scales::*};
+    ///
+    /// assert_eq!(scale!("C D E F G A B C").unwrap().get_parent_scale_type(), Some((ScaleType::Major.into(), 0)));
+    /// assert_eq!(scale!("C D E F# G A B C").unwrap().get_parent_scale_type(), Some((ScaleType::Major.into(), 4)));
+    /// assert_eq!(scale!("C D E F# G# A B C").unwrap().get_parent_scale_type(), Some((ScaleType::MelodicMinor.into(), 5)));
+    /// ```
+    pub fn get_parent_scale_type(&self) -> Option<(ScaleEnumType, usize)> {
+        // Creating an all rotations of current scale as a Vec
+        let all_rotations: Vec<Scale> =
+            (0..self.intervals.len()).map(|i| self.rotated(i as i8)).collect();
+
+        // Checking if any of the rotations matches a known scale
+        for (name, scale) in utils::KNOWN_SCALES {
+            if all_rotations.contains(&scale()) {
+                return Some((*name, all_rotations.iter().position(|s| s == &scale()).unwrap()));
+            }
+        }
+        None
+    }
+
+    /// Returns true if the scale matches a known scale type
+    ///
+    /// ### Examples
+    /// ```
+    /// use resonata::{notes::*, scales::*};
+    ///
+    /// assert!(scale!("C D E F G A B C").unwrap().is_known_scale());
+    /// assert!(scale!("C D E F# G A B C").unwrap().is_known_scale());
+    /// assert!(scale!("C D E F# G# A B C").unwrap().is_known_scale());
+    /// assert!(scale!("C D E F G A Bb C").unwrap().is_known_scale());
+    /// assert!(!scale!("C D E F G A Bbb C").unwrap().is_known_scale());
+    /// ```
+    pub fn is_known_scale(&self) -> bool {
+        self.get_known_scale_type().is_some()
+    }
+
+    /// Returns the name of the scale if it matches a known scale type or mode
+    ///
+    /// ### Examples
+    /// ```
+    /// use resonata::{notes::*, scales::*};
+    ///
+    /// assert_eq!(scale!("C D E F G A B C").unwrap().get_known_scale_type(), Some(ScaleType::Major.into()));
+    /// assert_eq!(scale!("C D E F# G A B C").unwrap().get_known_scale_type(), Some(MajorMode::Lydian.into()));
+    /// assert_eq!(scale!("C D E F# G# A B C").unwrap().get_known_scale_type(), Some(MelodicMinorMode::LydianAugmented.into()));
+    /// assert_eq!(scale!("C D E F G A Bb C").unwrap().get_known_scale_type(), Some(MajorMode::Mixolydian.into()));
+    /// assert_eq!(scale!("C D E F G A Bbb C").unwrap().get_known_scale_type(), None);
+    /// ```
+    pub fn get_known_scale_type(&self) -> Option<ScaleEnumType> {
+        for scales in utils::ALL_SCALES {
+            for (name, scale) in *scales {
+                if self == &scale() {
+                    return Some(*name);
+                }
+            }
+        }
+        None
+    }
+}
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ScaleEnumType {
@@ -65,113 +183,3 @@ pub enum MelodicMinorMode {
     HalfDiminished,
     Altered,
 }
-
-impl ScaleType {
-    pub fn as_steps(&self) -> Vec<i32> {
-        match self {
-            Major => vec![2, 2, 1, 2, 2, 2, 1],
-            Minor => vec![2, 1, 2, 2, 1, 2, 2],
-            HarmonicMinor => vec![2, 1, 2, 2, 1, 3, 1],
-            MelodicMinor => vec![2, 1, 2, 2, 2, 2, 1],
-            MajorPentatonic => vec![2, 2, 3, 2, 3],
-            MinorPentatonic => vec![3, 2, 2, 3, 2],
-            MinorBlues => vec![3, 2, 1, 1, 3, 2],
-            MajorBlues => vec![2, 1, 1, 3, 2, 3],
-            WholeTone => vec![2; 6],
-            Diminished => vec![2, 1, 2, 1, 2, 1, 2, 1],
-            Chromatic => vec![1; 12],
-        }
-    }
-}
-
-impl Display for ScaleType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let token = match self {
-            Major => "Major",
-            Minor => "Minor",
-            HarmonicMinor => "Harmonic Minor",
-            MelodicMinor => "Melodic Minor",
-            MajorPentatonic => "Major Pentatonic",
-            MinorPentatonic => "Minor Pentatonic",
-            MinorBlues => "Minor Blues",
-            MajorBlues => "Major Blues",
-            WholeTone => "Whole Tone",
-            Diminished => "Diminished",
-            Chromatic => "Chromatic",
-        };
-
-        write!(f, "{}", token)
-    }
-}
-
-impl MajorMode {
-    pub fn to_steps(&self) -> Vec<i32> {
-        let mut mode = ScaleType::Major.as_steps();
-        mode.rotate_left(*self as usize);
-        mode
-    }
-}
-
-impl HarmonicMinorMode {
-    pub fn to_steps(&self) -> Vec<i32> {
-        let mut mode = ScaleType::HarmonicMinor.as_steps();
-        mode.rotate_left(*self as usize);
-        mode
-    }
-}
-
-type NamedScale = (ScaleEnumType, fn() -> Scale);
-
-macro_rules! as_enum {
-    ($enum_type:ident, $variant:ident) => {
-        ScaleEnumType::$enum_type($enum_type::$variant)
-    };
-}
-
-pub static KNOWN_SCALES: &[NamedScale] = &[
-    (as_enum!(ScaleType, Major), Scale::major),
-    (as_enum!(ScaleType, Minor), Scale::minor),
-    (as_enum!(ScaleType, HarmonicMinor), Scale::harmonic_minor),
-    (as_enum!(ScaleType, MelodicMinor), Scale::melodic_minor),
-    (as_enum!(ScaleType, MajorPentatonic), Scale::major_pentatonic),
-    (as_enum!(ScaleType, MinorPentatonic), Scale::minor_pentatonic),
-    (as_enum!(ScaleType, MinorBlues), Scale::minor_blues),
-    (as_enum!(ScaleType, MajorBlues), Scale::major_blues),
-    (as_enum!(ScaleType, WholeTone), Scale::whole_tone),
-    (as_enum!(ScaleType, Diminished), Scale::diminished),
-    (as_enum!(ScaleType, Chromatic), Scale::chromatic),
-];
-
-pub static MAJOR_MODES: &[NamedScale] = &[
-    (as_enum!(MajorMode, Ionian), Scale::major),
-    (as_enum!(MajorMode, Dorian), || Scale::major().rotated(1)),
-    (as_enum!(MajorMode, Phrygian), || Scale::major().rotated(2)),
-    (as_enum!(MajorMode, Lydian), || Scale::major().rotated(3)),
-    (as_enum!(MajorMode, Mixolydian), || Scale::major().rotated(4)),
-    (as_enum!(MajorMode, Aeolian), || Scale::major().rotated(5)),
-    (as_enum!(MajorMode, Locrian), || Scale::major().rotated(6)),
-];
-
-pub static HARMONIC_MINOR_MODES: &[NamedScale] = &[
-    (as_enum!(HarmonicMinorMode, HarmonicMinorRoot), Scale::harmonic_minor),
-    (as_enum!(HarmonicMinorMode, LocrianNat6), || Scale::harmonic_minor().rotated(1)),
-    (as_enum!(HarmonicMinorMode, IonianAugmented), || Scale::harmonic_minor().rotated(2)),
-    (as_enum!(HarmonicMinorMode, DorianSharp4), || Scale::harmonic_minor().rotated(3)),
-    (as_enum!(HarmonicMinorMode, PhrygianDominant), || Scale::harmonic_minor().rotated(4)),
-    (as_enum!(HarmonicMinorMode, LydianSharp2), || Scale::harmonic_minor().rotated(5)),
-    (as_enum!(HarmonicMinorMode, SuperLocrian), || Scale::harmonic_minor().rotated(6)),
-];
-
-pub static MELODIC_MINOR_MODES: &[NamedScale] = &[
-    (as_enum!(MelodicMinorMode, MelodicMinorRoot), Scale::melodic_minor),
-    (as_enum!(MelodicMinorMode, DorianFlat2), || Scale::melodic_minor().rotated(1)),
-    (as_enum!(MelodicMinorMode, LydianAugmented), || Scale::melodic_minor().rotated(2)),
-    (as_enum!(MelodicMinorMode, LydianDominant), || Scale::melodic_minor().rotated(3)),
-    (as_enum!(MelodicMinorMode, AeolianDominant), || Scale::melodic_minor().rotated(4)),
-    (as_enum!(MelodicMinorMode, HalfDiminished), || Scale::melodic_minor().rotated(5)),
-    (as_enum!(MelodicMinorMode, Altered), || Scale::melodic_minor().rotated(6)),
-];
-
-// The list of all things to check
-pub static ALL_SCALES: &[&[NamedScale]] =
-    &[KNOWN_SCALES, MAJOR_MODES, HARMONIC_MINOR_MODES, MELODIC_MINOR_MODES];

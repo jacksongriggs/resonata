@@ -1,4 +1,4 @@
-use crate::{Interval, TransposeDown, TransposeUp};
+use crate::Interval;
 
 use super::*;
 use crate::{err, error::*};
@@ -9,124 +9,10 @@ use std::{
     str::FromStr,
 };
 
-impl TransposeUp for Note {
-    type Output = Self;
-
-    /// Return a new note transposed up by the given interval.
-    ///
-    /// ### Examples
-    /// ```
-    /// use resonata::{notes::*, intervals::*, TransposeUp};
-    ///
-    /// let note = Note::from_string("C").unwrap();
-    /// let new_note = note.transposed_up(Interval::from_string("M3").unwrap());
-    /// assert_eq!(new_note, Note::from_string("E").unwrap());
-    ///
-    /// let note = Note::from_string("D#").unwrap();
-    /// let new_note = note.transposed_up(Interval::from_string("A4").unwrap());
-    /// assert_eq!(new_note, Note::from_string("G##").unwrap());
-    /// 
-    /// let note = Note::from_string("C").unwrap();
-    /// let new_note = note.transposed_up(Interval::from_string("P8").unwrap());
-    /// assert_eq!(new_note, Note::from_string("C").unwrap());
-    /// ```
-    fn transposed_up(&self, interval: Interval) -> Self {
-        let mut new = self.clone();
-        
-        let semitones = interval.to_semitones() % 12;
-        new.name += interval.size();
-        
-        let new_semitones = self.interval_to(&new).to_semitones() % 12;
-        if semitones != new_semitones {
-            new.accidental += semitones - new_semitones;
-        }
-        new
-    }
-}
-
-impl TransposeDown for Note {
-    type Output = Self;
-
-    /// Return a new note transposed down by the given interval.
-    ///
-    /// ### Examples
-    /// ```
-    /// use resonata::{notes::*, intervals::*, TransposeDown};
-    ///
-    /// let note = Note::from_string("C").unwrap();
-    /// let new_note = note.transposed_down(Interval::from_string("M3").unwrap());
-    /// assert_eq!(new_note, Note::from_string("Ab").unwrap());
-    ///
-    /// let note = Note::from_string("D#").unwrap();
-    /// let new_note = note.transposed_down(Interval::from_string("A4").unwrap());
-    /// assert_eq!(new_note, Note::from_string("A").unwrap());
-    /// ```
-    fn transposed_down(&self, interval: Interval) -> Self {
-        let mut new = self.clone();
-        let semitones = interval.to_semitones();
-        new.name -= interval.size();
-        new.accidental -= semitones - new.interval_to(&self).to_semitones();
-        new
-    }
-}
-
 impl From<PitchedNote> for u8 {
     /// Convert a pitched note to a MIDI note number.
     fn from(pnote: PitchedNote) -> Self {
         pnote.to_midi_number()
-    }
-}
-
-impl TransposeUp for PitchedNote {
-    type Output = Result<Self>;
-
-    /// Transpose the note up by the given interval.
-    ///
-    /// ### Examples
-    /// ```
-    /// use resonata::{notes::*, intervals::*, TransposeUp};
-    ///
-    /// let note = pnote!("C4").unwrap().transposed_up(inv!("M3").unwrap()).unwrap();
-    /// assert_eq!(note, pnote!("E4").unwrap());
-    ///
-    /// let note = pnote!("A4").unwrap()
-    ///     .transposed_up(inv!("d3").unwrap()).unwrap();
-    /// assert_eq!(note, pnote!("Cb5").unwrap());
-    /// ```
-    fn transposed_up(&self, interval: Interval) -> Self::Output {
-        let mut new = self.moved_by(interval.to_diatonic_steps())?;
-        let semitones = interval.to_semitones();
-        let diff = semitones - self.interval_to(&new).to_semitones();
-        new.note.accidental += diff;
-        Ok(new.clone())
-    }
-}
-
-impl TransposeDown for PitchedNote {
-    type Output = Result<Self>;
-
-    /// Transpose the note down by the given interval.
-    ///
-    /// ### Examples
-    /// ```
-    /// use resonata::{notes::*, intervals::*, TransposeDown};
-    ///
-    /// let note = pnote!("C4").unwrap()
-    ///     .transposed_down(inv!("M3").unwrap())
-    ///     .unwrap();
-    /// assert_eq!(note, pnote!("Ab3").unwrap());
-    ///
-    /// let note = pnote!("F#4").unwrap()
-    ///     .transposed_down(inv!("A5").unwrap())
-    ///     .unwrap();
-    /// assert_eq!(note, pnote!("Bb3").unwrap());
-    /// ```
-    fn transposed_down(&self, interval: Interval) -> Self::Output {
-        let mut new = self.moved_by(-interval.to_diatonic_steps())?;
-        let semitones = interval.to_semitones();
-        let diff = semitones - new.interval_to(&self).to_semitones();
-        new.note.accidental -= diff;
-        Ok(new.clone())
     }
 }
 
@@ -139,13 +25,22 @@ use std::ops::{Add, AddAssign, Sub, SubAssign};
 impl Add<Interval> for Note {
     type Output = Self;
     fn add(self, rhs: Interval) -> Self::Output {
-        self.transposed_up(rhs)
+        let mut new = self.clone();
+        
+        let semitones = rhs.to_semitones() % 12;
+        new.name += rhs.size();
+        
+        let new_semitones = self.interval_to(&new).to_semitones() % 12;
+        if semitones != new_semitones {
+            new.accidental += semitones - new_semitones;
+        }
+        new
     }
 }
 
 impl AddAssign<Interval> for Note {
     fn add_assign(&mut self, rhs: Interval) {
-        *self = self.transposed_up(rhs);
+        *self = *self + rhs;
     }
 }
 
@@ -159,26 +54,42 @@ impl Sub for Note {
 impl Sub<Interval> for Note {
     type Output = Self;
     fn sub(self, rhs: Interval) -> Self::Output {
-        self.transposed_down(rhs)
+        let mut new = self.clone();
+        
+        let semitones = rhs.to_semitones() % 12;
+        new.name -= rhs.size();
+        
+        let new_semitones = new.interval_to(&self).to_semitones() % 12;
+        if semitones != new_semitones {
+            new.accidental -= semitones - new_semitones;
+        }
+        new
     }
 }
 
 impl SubAssign<Interval> for Note {
     fn sub_assign(&mut self, rhs: Interval) {
-        *self = self.transposed_down(rhs);
+        *self = *self - rhs;
     }
 }
 
 impl Add<Interval> for PitchedNote {
     type Output = Result<Self>;
     fn add(self, rhs: Interval) -> Self::Output {
-        self.transposed_up(rhs)
+        let mut new = self.moved_by(rhs.to_diatonic_steps())?;
+        let semitones = rhs.to_semitones();
+        let diff = semitones - self.interval_to(&new).to_semitones();
+        new.note.accidental += diff;
+        Ok(new.clone())
     }
 }
 
 impl AddAssign<Interval> for PitchedNote {
     fn add_assign(&mut self, rhs: Interval) {
-        // *self = self.transposed_up(rhs);
+        *self = match *self + rhs {
+            Ok(pnote) => pnote,
+            Err(_) => *self,
+        }
     }
 }
 
@@ -192,19 +103,25 @@ impl Sub for PitchedNote {
 impl Sub<Interval> for PitchedNote {
     type Output = Result<Self>;
     fn sub(self, rhs: Interval) -> Self::Output {
-        self.transposed_down(rhs)
+        let mut new = self.moved_by(-rhs.to_diatonic_steps())?;
+        let semitones = rhs.to_semitones();
+        let diff = semitones - new.interval_to(&self).to_semitones();
+        new.note.accidental -= diff;
+        Ok(new.clone())
     }
 }
 
 impl SubAssign<Interval> for PitchedNote {
     fn sub_assign(&mut self, rhs: Interval) {
-        // *self = self.transposed_down(rhs);
+        *self = match *self - rhs {
+            Ok(pnote) => pnote,
+            Err(_) => *self,
+        }
     }
 }
 
 impl FromStr for Note {
     type Err = ResonataError;
-
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match NOTE_RE.captures(s) {
             Some(cap) => {

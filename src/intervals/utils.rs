@@ -5,6 +5,29 @@ use std::{
     str::FromStr,
 };
 
+impl Invert for Interval {
+    fn invert(self) -> Self {
+        match self {
+            Interval::Simple(interval) => Interval::Simple(interval.invert()),
+            Interval::Compound(interval) => Interval::Simple(interval.base_interval.invert())
+                .compound(interval.octaves)
+                .unwrap(),
+        }
+    }
+}
+
+impl From<SimpleInterval> for Interval {
+    fn from(interval: SimpleInterval) -> Self {
+        Interval::Simple(interval)
+    }
+}
+
+impl From<CompoundInterval> for Interval {
+    fn from(interval: CompoundInterval) -> Self {
+        Interval::Compound(interval)
+    }
+}
+
 impl FromStr for Interval {
     type Err = ResonataError;
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
@@ -37,12 +60,12 @@ impl FromStr for Interval {
         }
 
         // Parse quality from the quality string
-        let quality = IntervalQuality::from_str(&quality_string)?;
+        let quality = quality_string.parse::<Quality>()?;
 
         // Parse size from the size string:
         let mut octaves: u8 = 0;
         let size = match size_string.as_str() {
-            "U" => IntervalSize::Unison,
+            "U" => Size::Unison,
             _ => match size_string.parse::<u8>() {
                 Ok(n) => match n {
                     0 => nope!(InvalidIntervalSize(0)),
@@ -51,7 +74,7 @@ impl FromStr for Interval {
                         if n >= 7 {
                             octaves = n / 7;
                         }
-                        IntervalSize::from(n % 7)
+                        Size::from(n % 7)
                     }
                 },
                 Err(_) => nope!(InvalidIntervalFormat),
@@ -128,49 +151,6 @@ impl Ord for Interval {
     }
 }
 
-impl Invert for PerfectSize {
-    fn invert(self) -> Self {
-        match self {
-            PerfectSize::Unison => PerfectSize::Unison,
-            PerfectSize::Fourth => PerfectSize::Fifth,
-            PerfectSize::Fifth => PerfectSize::Fourth,
-        }
-    }
-}
-
-impl Invert for ImperfectSize {
-    fn invert(self) -> Self {
-        match self {
-            ImperfectSize::Second => ImperfectSize::Seventh,
-            ImperfectSize::Third => ImperfectSize::Sixth,
-            ImperfectSize::Sixth => ImperfectSize::Third,
-            ImperfectSize::Seventh => ImperfectSize::Second,
-        }
-    }
-}
-
-impl Invert for IntervalSizeType {
-    fn invert(self) -> Self {
-        match self {
-            IntervalSizeType::Perfect(interval) => IntervalSizeType::Perfect(interval.invert()),
-            IntervalSizeType::Imperfect(interval) => IntervalSizeType::Imperfect(interval.invert()),
-        }
-    }
-}
-
-impl Invert for Alteration {
-    fn invert(self) -> Self {
-        match self.alteration_type {
-            AlterationType::Diminished => {
-                Alteration { alteration_type: AlterationType::Augmented, degree: self.degree }
-            }
-            AlterationType::Augmented => {
-                Alteration { alteration_type: AlterationType::Diminished, degree: self.degree }
-            }
-        }
-    }
-}
-
 impl Invert for SimpleInterval {
     fn invert(self) -> Self {
         match self {
@@ -187,149 +167,6 @@ impl Invert for SimpleInterval {
                 SimpleInterval::Altered(interval_type.invert(), modification.invert())
             }
         }
-    }
-}
-
-impl Invert for Interval {
-    fn invert(self) -> Self {
-        match self {
-            Interval::Simple(interval) => Interval::Simple(interval.invert()),
-            Interval::Compound(interval) => Interval::Simple(interval.base_interval.invert())
-                .compound(interval.octaves)
-                .unwrap(),
-        }
-    }
-}
-
-impl From<IntervalSize> for IntervalSizeType {
-    fn from(size: IntervalSize) -> Self {
-        match size {
-            IntervalSize::Unison => IntervalSizeType::Perfect(PerfectSize::Unison),
-            IntervalSize::Second => IntervalSizeType::Imperfect(ImperfectSize::Second),
-            IntervalSize::Third => IntervalSizeType::Imperfect(ImperfectSize::Third),
-            IntervalSize::Fourth => IntervalSizeType::Perfect(PerfectSize::Fourth),
-            IntervalSize::Fifth => IntervalSizeType::Perfect(PerfectSize::Fifth),
-            IntervalSize::Sixth => IntervalSizeType::Imperfect(ImperfectSize::Sixth),
-            IntervalSize::Seventh => IntervalSizeType::Imperfect(ImperfectSize::Seventh),
-        }
-    }
-}
-
-impl From<IntervalSize> for PerfectSize {
-    fn from(size: IntervalSize) -> Self {
-        match size {
-            IntervalSize::Unison => PerfectSize::Unison,
-            IntervalSize::Fourth => PerfectSize::Fourth,
-            IntervalSize::Fifth => PerfectSize::Fifth,
-            _ => {
-                println!("IntervalSize::from(IntervalSize) called with {:?}", size);
-                unreachable!()
-            }
-        }
-    }
-}
-
-impl From<PerfectSize> for IntervalSize {
-    fn from(size: PerfectSize) -> Self {
-        match size {
-            PerfectSize::Unison => IntervalSize::Unison,
-            PerfectSize::Fourth => IntervalSize::Fourth,
-            PerfectSize::Fifth => IntervalSize::Fifth,
-        }
-    }
-}
-
-impl From<IntervalSize> for ImperfectSize {
-    fn from(size: IntervalSize) -> Self {
-        match size {
-            IntervalSize::Second => ImperfectSize::Second,
-            IntervalSize::Third => ImperfectSize::Third,
-            IntervalSize::Sixth => ImperfectSize::Sixth,
-            IntervalSize::Seventh => ImperfectSize::Seventh,
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl From<ImperfectSize> for IntervalSize {
-    fn from(size: ImperfectSize) -> Self {
-        match size {
-            ImperfectSize::Second => IntervalSize::Second,
-            ImperfectSize::Third => IntervalSize::Third,
-            ImperfectSize::Sixth => IntervalSize::Sixth,
-            ImperfectSize::Seventh => IntervalSize::Seventh,
-        }
-    }
-}
-
-impl From<IntervalSizeType> for IntervalSize {
-    fn from(size: IntervalSizeType) -> Self {
-        match size {
-            IntervalSizeType::Perfect(size) => IntervalSize::from(size),
-            IntervalSizeType::Imperfect(size) => IntervalSize::from(size),
-        }
-    }
-}
-
-impl From<PerfectSize> for IntervalSizeType {
-    fn from(interval: PerfectSize) -> Self {
-        IntervalSizeType::Perfect(interval)
-    }
-}
-
-impl From<ImperfectSize> for IntervalSizeType {
-    fn from(interval: ImperfectSize) -> Self {
-        IntervalSizeType::Imperfect(interval)
-    }
-}
-
-impl From<IntervalQuality> for ImperfectType {
-    fn from(quality: IntervalQuality) -> Self {
-        match quality {
-            IntervalQuality::Major => ImperfectType::Major,
-            IntervalQuality::Minor => ImperfectType::Minor,
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl From<IntervalQuality> for AlterationType {
-    fn from(quality: IntervalQuality) -> Self {
-        match quality {
-            IntervalQuality::Augmented(_) => AlterationType::Augmented,
-            IntervalQuality::Diminished(_) => AlterationType::Diminished,
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl From<IntervalSizeType> for ImperfectSize {
-    fn from(interval: IntervalSizeType) -> Self {
-        match interval {
-            IntervalSizeType::Imperfect(interval) => interval,
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl From<IntervalSizeType> for PerfectSize {
-    fn from(interval: IntervalSizeType) -> Self {
-        match interval {
-            IntervalSizeType::Perfect(interval) => interval,
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl From<SimpleInterval> for Interval {
-    fn from(interval: SimpleInterval) -> Self {
-        Interval::Simple(interval)
-    }
-}
-
-impl From<CompoundInterval> for Interval {
-    fn from(interval: CompoundInterval) -> Self {
-        Interval::Compound(interval)
     }
 }
 

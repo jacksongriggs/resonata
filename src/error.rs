@@ -1,4 +1,4 @@
-use crate::intervals::{IntervalQuality, IntervalSize};
+use crate::intervals::*;
 use thiserror::Error;
 
 pub use crate::{err, nope, yep};
@@ -11,7 +11,7 @@ pub enum IntervalError {
     #[error("Invalid interval")]
     InvalidInterval,
     #[error("Invalid interval quality and size")]
-    InvalidIntervalQualityAndSize(IntervalQuality, IntervalSize),
+    InvalidIntervalQualityAndSize(Quality, Size),
     #[error("Invalid interval quality")]
     InvalidIntervalQuality,
     #[error("Invalid diminished count")]

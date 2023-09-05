@@ -1,4 +1,4 @@
-use crate::{error::*, scales::*, intervals};
+use crate::{error::*, scales::*};
 use std::{
     fmt::{self, Debug, Display, Formatter},
     ops::{Add, AddAssign},

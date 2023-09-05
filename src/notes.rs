@@ -1,3 +1,62 @@
+use crate::{
+    error::{NoteError, ResonataError},
+    intervals::*,
+    nope,
+};
+
+pub use crate::{note, pnote};
+pub use acc::*;
+pub use name::*;
+
+pub mod acc;
+pub mod name;
+mod tests;
+mod utils;
+
+type Result<T> = std::result::Result<T, ResonataError>;
+
+/// A musical accidental
+/// Flats and sharps take a number to represent
+/// the number of flats or sharps.
+///
+/// To convert an accidental to a number of semitones,
+/// use the to_semitones method.
+///
+/// To convert a number of semitones to an accidental,
+/// use the from_semitones method.
+///
+/// ### Examples
+/// ```
+/// use resonata::notes::*;
+///
+/// assert_eq!(Accidental::Flat(1).to_semitones(), -1);
+/// assert_eq!(Accidental::Natural.to_semitones(), 0);
+/// assert_eq!(Accidental::Sharp(2).to_semitones(), 2);
+///
+/// assert_eq!(Accidental::from_semitones(-1), Accidental::Flat(1));
+/// assert_eq!(Accidental::from_semitones(0), Accidental::Natural);
+/// assert_eq!(Accidental::from_semitones(2), Accidental::Sharp(2));
+/// ```
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+pub enum Accidental {
+    Flat(u8),
+    Natural,
+    Sharp(u8),
+}
+
+/// A musical note name
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
+#[repr(u8)]
+pub enum NoteName {
+    C,
+    D,
+    E,
+    F,
+    G,
+    A,
+    B,
+}
+
 /// A musical note.
 ///
 /// Notes are represented by a note name and an accidental.
@@ -14,13 +73,13 @@
 /// ```
 /// use resonata::notes::*;
 ///
-/// let c = note!(C);
-/// let d_sharp = note!(D, Sharp(1));
+/// let c = note!(NoteName::C);
+/// let d_sharp = note!(NoteName::D, Accidental::Sharp(1));
 /// let f_double_flat = note!("Fbb").unwrap();
 ///
-/// assert_eq!(c, Note::new(C, Natural));
-/// assert_eq!(d_sharp, Note::new(D, Sharp(1)));
-/// assert_eq!(f_double_flat, Note::new(F, Flat(2)));
+/// assert_eq!(c, Note::new(NoteName::C, Accidental::Natural));
+/// assert_eq!(d_sharp, Note::new(NoteName::D, Accidental::Sharp(1)));
+/// assert_eq!(f_double_flat, Note::new(NoteName::F, Accidental::Flat(2)));
 /// ```
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Note {
@@ -31,39 +90,16 @@ pub struct Note {
 /// A macro to create a note.
 #[macro_export]
 macro_rules! note {
-    // For note!("C");
     ($name:literal) => {
-        Note::from_string($name)
+        $name.parse::<Note>()
     };
-    // For note!(C);
     ($name:expr) => {
         Note::from_note_name($name)
     };
-    // For note!(C, Flat(1));
     ($name:expr, $accidental:expr) => {
         Note::new($name, $accidental)
     };
 }
-
-use crate::{
-    error::{NoteError, ResonataError},
-    intervals::*,
-    nope,
-};
-use accidental::*;
-use name::*;
-use std::str::FromStr;
-
-pub use crate::{note, pnote};
-pub use accidental::Accidental;
-pub use name::NoteName;
-
-pub mod accidental;
-pub mod name;
-mod tests;
-mod utils;
-
-type Result<T> = std::result::Result<T, ResonataError>;
 
 impl Note {
     /// Creates a new note from a note name and accidental.
@@ -72,13 +108,13 @@ impl Note {
     /// ```
     /// use resonata::notes::*;
     ///
-    /// let c = Note::new(C, Natural);
-    /// assert_eq!(c.name(), C);
-    /// assert_eq!(c.accidental(), Natural);
+    /// let c = Note::new(NoteName::C, Accidental::Natural);
+    /// assert_eq!(c.name(), NoteName::C);
+    /// assert_eq!(c.accidental(), Accidental::Natural);
     ///
-    /// let d_sharp = Note::new(D, Sharp(1));
-    /// assert_eq!(d_sharp.name(), D);
-    /// assert_eq!(d_sharp.accidental(), Sharp(1));
+    /// let d_sharp = Note::new(NoteName::D, Accidental::Sharp(1));
+    /// assert_eq!(d_sharp.name(), NoteName::D);
+    /// assert_eq!(d_sharp.accidental(), Accidental::Sharp(1));
     /// ```
     pub fn new(name: NoteName, accidental: Accidental) -> Self {
         Note { name, accidental }
@@ -86,27 +122,7 @@ impl Note {
 
     /// Creates a new note from a note name, with a natural accidental.
     pub fn from_note_name(name: NoteName) -> Self {
-        Note { name, accidental: Natural }
-    }
-
-    /// Creates a new note from a string.
-    /// The string must be in the format "nameaccidental", where
-    /// name is a note name, and accidental is an accidental.
-    /// The accidental can be omitted, in which case it will be a natural accidental.
-    /// The string is case-insensitive.
-    ///
-    /// ### Examples
-    /// ```
-    /// use resonata::notes::*;
-    ///
-    /// let c = Note::from_string("C").unwrap();
-    /// assert_eq!(c, note!(C));
-    ///
-    /// let d_sharp = Note::from_string("D#").unwrap();
-    /// assert_eq!(d_sharp, note!(D, Sharp(1)));
-    /// ```
-    pub fn from_string(s: &str) -> Result<Self> {
-        Note::from_str(s)
+        Note { name, accidental: Accidental::Natural }
     }
 
     /// Returns this note with the given octave. If the resulting
@@ -116,10 +132,10 @@ impl Note {
     /// ```
     /// use resonata::notes::*;
     ///
-    /// let c = note!(C);
-    /// assert_eq!(c.with_octave(4).unwrap(), pnote!(C, 4).unwrap());
+    /// let c = note!("C").unwrap();
+    /// assert_eq!(c.with_octave(4).unwrap(), pnote!("C4").unwrap());
     ///
-    /// let bb = note!(B, Flat(1));
+    /// let bb = note!("Bb").unwrap();
     /// assert!(bb.with_octave(9).is_err());
     /// ```
     pub fn with_octave(&self, octave: i8) -> Result<PitchedNote> {
@@ -135,10 +151,10 @@ impl Note {
     /// ```
     /// use resonata::notes::*;
     ///
-    /// let f = note!(F);
+    /// let f = note!("F").unwrap();
     /// assert_eq!(f.to_chromatic_scale_degree(), 5);
     ///
-    /// let d_double_sharp = note!(D, Sharp(2));
+    /// let d_double_sharp = note!("Dx").unwrap();
     /// assert_eq!(d_double_sharp.to_chromatic_scale_degree(), 4);
     ///
     /// let c_flat = note!("Cb").unwrap();
@@ -160,10 +176,10 @@ impl Note {
     /// ```
     /// use resonata::notes::*;
     ///
-    /// let f = note!(F);
+    /// let f = note!("F").unwrap();
     /// assert_eq!(Note::from_chromatic_scale_degree(5), f);
     ///
-    /// let d_sharp = note!(D, Sharp(1));
+    /// let d_sharp = note!("D#").unwrap();
     /// assert_eq!(Note::from_chromatic_scale_degree(3), d_sharp);
     ///
     /// let a_sharp = note!("A#").unwrap();
@@ -184,8 +200,8 @@ impl Note {
     /// ```
     /// use resonata::notes::*;
     ///
-    /// let c = note!(C);
-    /// let d = note!(D);
+    /// let c = note!("C").unwrap();
+    /// let d = note!("D").unwrap();
     /// assert_eq!(c.semitones_to(&d), 2);
     /// assert_eq!(d.semitones_to(&c), 10);
     ///
@@ -208,8 +224,8 @@ impl Note {
     /// ```
     /// use resonata::notes::*;
     ///
-    /// let c = note!(C);
-    /// let d = note!(D);
+    /// let c = note!("C").unwrap();
+    /// let d = note!("D").unwrap();
     /// assert_eq!(c.semitones_between(&d), 2);
     /// assert_eq!(d.semitones_between(&c), 2);
     ///
@@ -243,7 +259,7 @@ impl Note {
     /// assert_eq!(c_sharp.to_enharmonic_equivalent(1), d_flat);
     /// assert_eq!(d_flat.to_enharmonic_equivalent(-8), c_sharp);
     ///
-    /// let e_dbl_sharp = note!("E##").unwrap();
+    /// let e_dbl_sharp = note!("Ex").unwrap();
     /// let g_flat = note!("Gb").unwrap();
     /// assert_eq!(e_dbl_sharp.to_enharmonic_equivalent(2), g_flat);
     /// ```
@@ -266,19 +282,19 @@ impl Note {
     /// ```
     /// use resonata::{notes::*, intervals::*};
     ///
-    /// let c = note!(C);
-    /// let d = note!(D);
-    /// assert_eq!(c.interval_to(&d), inv!(Major, Second).unwrap());
-    /// assert_eq!(d.interval_to(&c), inv!(Minor, Seventh).unwrap());
+    /// let c = note!("C").unwrap();
+    /// let d = note!("D").unwrap();
+    /// assert_eq!(c.interval_to(&d), inv!("M2").unwrap());
+    /// assert_eq!(d.interval_to(&c), inv!("m7").unwrap());
     ///
     /// let c_flat = note!("Cb").unwrap();
     /// let b_sharp = note!("B#").unwrap();
-    /// assert_eq!(c_flat.interval_to(&b_sharp), inv!(Augmented(2), Seventh).unwrap());
+    /// assert_eq!(c_flat.interval_to(&b_sharp), inv!("AA7").unwrap());
     /// ```
     pub fn interval_to(&self, other: &Note) -> Interval {
         Interval::from_semitones(self.semitones_to(other))
             .unwrap()
-            .as_size(size::IntervalSize::from((other.name - self.name + 7) as i32), 0)
+            .as_size(Size::from((other.name - self.name + 7) as i32), 0)
             .unwrap()
     }
 
@@ -305,14 +321,14 @@ impl Note {
 /// ```
 /// use resonata::notes::*;
 ///
-/// let c4 = pnote!(C, 4).unwrap();
-/// assert_eq!(c4, PitchedNote::new(C, Natural, 4).unwrap());
+/// let c4 = pnote!(NoteName::C, 4).unwrap();
+/// assert_eq!(c4, PitchedNote::new(NoteName::C, Accidental::Natural, 4).unwrap());
 ///
-/// let d_sharp_2 = pnote!(D, Sharp(1), 2).unwrap();
-/// assert_eq!(d_sharp_2, PitchedNote::new(D, Sharp(1), 2).unwrap());
+/// let d_sharp_2 = pnote!(NoteName::D, Accidental::Sharp(1), 2).unwrap();
+/// assert_eq!(d_sharp_2, PitchedNote::new(NoteName::D, Accidental::Sharp(1), 2).unwrap());
 ///
 /// let f_double_flat_8 = pnote!("Fbb8").unwrap();
-/// assert_eq!(f_double_flat_8, PitchedNote::new(F, Flat(2), 8).unwrap());
+/// assert_eq!(f_double_flat_8, PitchedNote::new(NoteName::F, Accidental::Flat(2), 8).unwrap());
 /// ```
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct PitchedNote {
@@ -323,23 +339,18 @@ pub struct PitchedNote {
 /// A macro to create a pitched note.
 #[macro_export]
 macro_rules! pnote {
-    // For pnote!("C4");
     ($name:literal) => {
-        PitchedNote::from_string($name)
+        $name.parse::<PitchedNote>()
     };
-    // For pnote!(C);
     ($name:expr) => {
         PitchedNote::build($name, 4)
     };
-    // For pnote!(C, 4);
     ($name:expr, $oct:literal) => {
         PitchedNote::build($name, $oct)
     };
-    // For pnote!(C, Flat(1));
     ($name:expr, $accidental:expr) => {
         PitchedNote::new($name, $accidental, 4)
     };
-    // For pnote!(C, Flat(1), 4);
     ($name:expr, $accidental:expr, $oct:literal) => {
         PitchedNote::new($name, $accidental, $oct)
     };
@@ -353,12 +364,12 @@ impl PitchedNote {
     /// ```
     /// use resonata::notes::*;
     ///
-    /// let c4 = PitchedNote::new(C, Natural, 4).unwrap();
-    /// assert_eq!(c4.name(), C);
-    /// assert_eq!(c4.accidental(), Natural);
+    /// let c4 = PitchedNote::new(NoteName::C, Accidental::Natural, 4).unwrap();
+    /// assert_eq!(c4.name(), NoteName::C);
+    /// assert_eq!(c4.accidental(), Accidental::Natural);
     /// assert_eq!(c4.octave(), 4);
     ///
-    /// let g_sharp_9 = PitchedNote::new(G, Sharp(1), 9);
+    /// let g_sharp_9 = PitchedNote::new(NoteName::G, Accidental::Sharp(1), 9);
     /// assert!(g_sharp_9.is_err());
     /// ```
     pub fn new(name: NoteName, accidental: Accidental, octave: i8) -> Result<Self> {
@@ -380,32 +391,7 @@ impl PitchedNote {
     /// Creates a new note from a note name and octave, with a natural accidental. If the resulting
     /// note is outside of the range C-1 to G9, None will be returned.
     pub fn build(name: NoteName, octave: i8) -> Result<Self> {
-        Self::new(name, Natural, octave)
-    }
-
-    /// Creates a new note from a string. The string must be in the format "nameaccidentaloctave", where
-    /// name is a note name, accidental is an accidental, and octave is an integer.
-    ///
-    /// The accidental and octave can be omitted, in which case they will be a natural accidental and 4 respectively.
-    ///
-    /// The string is case-insensitive. If the resulting note is outside of the range C-1 to G9, or the string is invalid,
-    /// None will be returned.
-    ///
-    /// ### Examples
-    /// ```
-    /// use resonata::notes::*;
-    ///
-    /// let g = PitchedNote::from_string("G").unwrap();
-    /// assert_eq!(g, pnote!(G, 4).unwrap());
-    ///
-    /// let e_flat_2 = PitchedNote::from_string("Eb2").unwrap();
-    /// assert_eq!(e_flat_2, pnote!(E, Flat(1), 2).unwrap());
-    ///
-    /// let resonata = PitchedNote::from_string("Resonata");
-    /// assert!(resonata.is_err());
-    /// ```
-    pub fn from_string(s: &str) -> Result<Self> {
-        PitchedNote::from_str(s)
+        Self::new(name, Accidental::Natural, octave)
     }
 
     /// Returns the midi note number of the note.
@@ -415,13 +401,13 @@ impl PitchedNote {
     /// ```
     /// use resonata::notes::*;
     ///
-    /// let c4 = pnote!(C, 4).unwrap();
+    /// let c4 = pnote!("C4").unwrap();
     /// assert_eq!(c4.to_midi_number(), 60);
     ///
-    /// let c_neg1 = pnote!(C, -1).unwrap();
+    /// let c_neg1 = pnote!("C-1").unwrap();
     /// assert_eq!(c_neg1.to_midi_number(), 0);
     ///
-    /// let gbb9 = pnote!(G, Flat(2), 9).unwrap();
+    /// let gbb9 = pnote!("Gbb9").unwrap();
     /// assert_eq!(gbb9.to_midi_number(), 125);
     /// ```
     pub fn to_midi_number(&self) -> u8 {
@@ -440,17 +426,17 @@ impl PitchedNote {
     /// ```
     /// use resonata::notes::*;
     ///
-    /// let c4 = pnote!(C, 4).unwrap();
+    /// let c4 = pnote!("C4").unwrap();
     /// assert_eq!(PitchedNote::from_midi_number(60).unwrap(), c4);
     ///
-    /// let gbb9 = pnote!(G, Flat(2), 9).unwrap();
+    /// let gbb9 = pnote!("Gbb9").unwrap();
     /// assert_eq!(PitchedNote::from_midi_number(125).unwrap()
     ///     .to_enharmonic_equivalent(1).unwrap(), gbb9);
     ///
-    /// let c_neg1 = pnote!(C, -1).unwrap();
+    /// let c_neg1 = pnote!("C-1").unwrap();
     /// assert_eq!(PitchedNote::from_midi_number(0).unwrap(), c_neg1);
     ///
-    /// let c9 = pnote!(C, 9).unwrap();
+    /// let c9 = pnote!("C9").unwrap();
     /// assert_eq!(PitchedNote::from_midi_number(120).unwrap(), c9);
     /// ```
     pub fn from_midi_number(number: u8) -> Result<Self> {
@@ -466,13 +452,13 @@ impl PitchedNote {
     /// ```
     /// use resonata::notes::*;
     ///
-    /// let c4 = pnote!(C, 4).unwrap();
-    /// let d4 = pnote!(D, 4).unwrap();
+    /// let c4 = pnote!("C4").unwrap();
+    /// let d4 = pnote!("D4").unwrap();
     /// assert_eq!(c4.semitones_to(&d4), 2);
     /// assert_eq!(d4.semitones_to(&c4), -2);
     ///
-    /// let c_neg1 = pnote!(C, -1).unwrap();
-    /// let c0 = pnote!(C, 0).unwrap();
+    /// let c_neg1 = pnote!("C-1").unwrap();
+    /// let c0 = pnote!("C0").unwrap();
     /// assert_eq!(c_neg1.semitones_to(&c0), 12);
     /// assert_eq!(c0.semitones_to(&c_neg1), -12);
     /// ```
@@ -487,8 +473,8 @@ impl PitchedNote {
     /// ```
     /// use resonata::notes::*;
     ///
-    /// let c4 = pnote!(C, 4).unwrap();
-    /// let d4 = pnote!(D, 4).unwrap();
+    /// let c4 = pnote!("C4").unwrap();
+    /// let d4 = pnote!("D4").unwrap();
     /// assert_eq!(c4.semitones_between(&d4), 2);
     /// assert_eq!(d4.semitones_between(&c4), 2);
     /// ```
@@ -503,13 +489,13 @@ impl PitchedNote {
     /// ```
     /// use resonata::notes::*;
     ///
-    /// let c4 = pnote!(C, 4).unwrap();
-    /// let g4 = pnote!(G, 4).unwrap();
+    /// let c4 = pnote!("C4").unwrap();
+    /// let g4 = pnote!("G4").unwrap();
     /// assert_eq!(c4.diatonic_distance_to(&g4), 4);
     /// assert_eq!(g4.diatonic_distance_to(&c4), -4);
     ///
-    /// let c_sharp_3 = pnote!(C, Sharp(1), 3).unwrap();
-    /// let f_flat_4 = pnote!(F, Flat(1), 4).unwrap();
+    /// let c_sharp_3 = pnote!("C#3").unwrap();
+    /// let f_flat_4 = pnote!("Fb4").unwrap();
     /// assert_eq!(c_sharp_3.diatonic_distance_to(&f_flat_4), 10);
     /// assert_eq!(f_flat_4.diatonic_distance_to(&c_sharp_3), -10);
     /// ```
@@ -590,24 +576,24 @@ impl PitchedNote {
     /// use resonata::notes::*;
     /// use resonata::intervals::*;
     ///
-    /// let c4 = pnote!(C, 4).unwrap();
-    /// let d4 = pnote!(D, 4).unwrap();
-    /// assert_eq!(c4.interval_to(&d4), inv!(Major, Second).unwrap());
+    /// let c4 = pnote!("C4").unwrap();
+    /// let d4 = pnote!("D4").unwrap();
+    /// assert_eq!(c4.interval_to(&d4), inv!("M2").unwrap());
     ///
-    /// let cb4 = pnote!(C, Flat(1), 4).unwrap();
-    /// let b3 = pnote!(B, 3).unwrap();
-    /// assert_eq!(cb4.interval_to(&b3), inv!(Diminished(1), Second).unwrap());
+    /// let cb4 = pnote!("Cb4").unwrap();
+    /// let b3 = pnote!("B3").unwrap();
+    /// assert_eq!(cb4.interval_to(&b3), inv!("d2").unwrap());
     ///
-    /// let c_triple_sharp_3 = pnote!(C, Sharp(3), 3).unwrap();
-    /// let d_double_flat_3 = pnote!(D, Flat(2), 3).unwrap();
-    /// assert_eq!(c_triple_sharp_3.interval_to(&d_double_flat_3), inv!(Augmented(1), Second).unwrap());
+    /// let c_triple_sharp_3 = pnote!("C#x3").unwrap();
+    /// let d_double_flat_3 = pnote!("Dbb3").unwrap();
+    /// assert_eq!(c_triple_sharp_3.interval_to(&d_double_flat_3), inv!("A2").unwrap());
     /// ```
     pub fn interval_to(&self, other: &PitchedNote) -> Interval {
         let diatonic_distance = self.diatonic_distance_to(other);
         Interval::from_semitones(self.semitones_between(other))
             .unwrap()
             .as_size(
-                size::IntervalSize::from(diatonic_distance as u8),
+                Size::from(diatonic_distance as u8),
                 (diatonic_distance / 7) as u8,
             )
             .unwrap()

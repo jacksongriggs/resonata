@@ -1,20 +1,16 @@
-use crate::{intervals::Interval, keys::*, TransposeDown, TransposeUp};
+use crate::{intervals::Interval, keys::*};
 use std::{
     fmt::{self, Debug, Display, Formatter},
-    ops::{Add, AddAssign, Sub, SubAssign},
+    ops::{Add, AddAssign, Sub, SubAssign}, str::FromStr,
 };
 
-impl TransposeUp for Key {
-    type Output = Self;
-    fn transposed_up(&self, interval: Interval) -> Self {
-        self.clone() + interval
-    }
-}
-
-impl TransposeDown for Key {
-    type Output = Self;
-    fn transposed_down(&self, interval: Interval) -> Self {
-        self.clone() - interval
+impl FromStr for Key {
+    type Err = ResonataError;
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        let s = s.replace(",", " ");
+        let notes =
+            s.split_whitespace().map(|s| s.parse::<Note>()).collect::<Result<Vec<Note>>>()?;
+        Ok(Key::new(notes))
     }
 }
 

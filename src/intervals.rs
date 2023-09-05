@@ -3,16 +3,13 @@ use crate::{
     error::{IntervalError, ResonataError},
     nope,
 };
-use quality::IntervalQuality::*;
-use size::IntervalSize::*;
-use std::str::FromStr;
 
 pub use crate::inv;
-pub use quality::IntervalQuality;
-pub use size::IntervalSize;
+pub use size::*;
+pub use quality::*;
 
-pub mod quality;
 pub mod size;
+pub mod quality;
 mod tests;
 mod utils;
 
@@ -20,102 +17,6 @@ type Result<T> = std::result::Result<T, ResonataError>;
 
 pub trait Invert {
     fn invert(self) -> Self;
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum PerfectSize {
-    Unison = 0,
-    Fourth = 5,
-    Fifth = 7,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum ImperfectSize {
-    Second = 2,
-    Third = 4,
-    Sixth = 9,
-    Seventh = 11,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum IntervalSizeType {
-    Perfect(PerfectSize),
-    Imperfect(ImperfectSize),
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum ImperfectType {
-    Major,
-    Minor,
-}
-
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub enum AlterationType {
-    Diminished,
-    Augmented,
-}
-
-/// A musical interval alteration. The degree specifies the degree of the alteration.
-/// For example, a double diminished interval has a degree of 2. Note that while the
-/// degree must be a positive integer, inclusive, using the Alteration::degree() method
-/// will return a negative number if the alteration is diminished.
-///
-/// ### Errors
-/// Returns an error if the degree is not between 1 and 127, inclusive.
-///
-/// ### Examples
-/// ```
-/// use resonata::intervals::*;
-///
-/// let alt = Alteration::augmented(1).unwrap();
-/// assert_eq!(alt.degree(), 1);
-/// assert_eq!(alt.alteration_type(), AlterationType::Augmented);
-///
-/// let alt = Alteration::diminished(2).unwrap();
-/// assert_eq!(alt.degree(), -2);
-/// assert_eq!(alt.alteration_type(), AlterationType::Diminished);
-///
-/// let invalid_alt = Alteration::augmented(0);
-/// assert!(invalid_alt.is_err());
-/// ```
-#[derive(Debug, Clone, Copy)]
-pub struct Alteration {
-    alteration_type: AlterationType,
-    degree: u8,
-}
-
-impl Alteration {
-    pub fn augmented(degree: u8) -> Result<Alteration> {
-        Alteration::build(AlterationType::Augmented, degree)
-    }
-
-    pub fn diminished(degree: u8) -> Result<Alteration> {
-        Alteration::build(AlterationType::Diminished, degree)
-    }
-
-    fn build(alteration_type: AlterationType, degree: u8) -> Result<Alteration> {
-        if degree >= 1 && degree <= 127 {
-            Ok(Alteration { alteration_type, degree })
-        } else {
-            err!(IntervalError::InvalidAlterationDegree(degree))
-        }
-    }
-
-    /// Returns the degree of the alteration.
-    /// The degree is the number of diminished or augmented intervals.
-    /// For example, a double diminished interval has a degree of 2.
-    pub fn degree(&self) -> i8 {
-        match self.alteration_type {
-            AlterationType::Diminished => -(self.degree as i8),
-            AlterationType::Augmented => self.degree as i8,
-        }
-    }
-
-    /// Returns the type of the alteration.
-    /// The type is either diminished or augmented.
-    pub fn alteration_type(&self) -> AlterationType {
-        self.alteration_type
-    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -137,7 +38,7 @@ impl SimpleInterval {
                 alt.degree()
                     + match size {
                         IntervalSizeType::Perfect(size) => *size as i8,
-                        IntervalSizeType::Imperfect(size) => match alt.alteration_type {
+                        IntervalSizeType::Imperfect(size) => match alt.alteration_type() {
                             AlterationType::Diminished => *size as i8 - 1, // Diminished intervals are two semitones smaller than major intervals
                             AlterationType::Augmented => *size as i8,
                         },
@@ -148,41 +49,41 @@ impl SimpleInterval {
 
     fn from_semitones(semitones: i32) -> Interval {
         match semitones.abs() % 12 {
-            0 => SimpleInterval::Perfect(Unison.into()).into(),
-            1 => SimpleInterval::Imperfect(Second.into(), Minor.into()).into(),
-            2 => SimpleInterval::Imperfect(Second.into(), Major.into()).into(),
-            3 => SimpleInterval::Imperfect(Third.into(), Minor.into()).into(),
-            4 => SimpleInterval::Imperfect(Third.into(), Major.into()).into(),
-            5 => SimpleInterval::Perfect(Fourth.into()).into(),
-            6 => SimpleInterval::Altered(Fourth.into(), Alteration::augmented(1).unwrap()).into(),
-            7 => SimpleInterval::Perfect(Fifth.into()).into(),
-            8 => SimpleInterval::Imperfect(Sixth.into(), Minor.into()).into(),
-            9 => SimpleInterval::Imperfect(Sixth.into(), Major.into()).into(),
-            10 => SimpleInterval::Imperfect(Seventh.into(), Minor.into()).into(),
-            11 => SimpleInterval::Imperfect(Seventh.into(), Major.into()).into(),
+            0 => SimpleInterval::Perfect(Size::Unison.into()).into(),
+            1 => SimpleInterval::Imperfect(Size::Second.into(), Quality::Minor.into()).into(),
+            2 => SimpleInterval::Imperfect(Size::Second.into(), Quality::Major.into()).into(),
+            3 => SimpleInterval::Imperfect(Size::Third.into(), Quality::Minor.into()).into(),
+            4 => SimpleInterval::Imperfect(Size::Third.into(), Quality::Major.into()).into(),
+            5 => SimpleInterval::Perfect(Size::Fourth.into()).into(),
+            6 => SimpleInterval::Altered(Size::Fourth.into(), Alteration::augmented(1).unwrap()).into(),
+            7 => SimpleInterval::Perfect(Size::Fifth.into()).into(),
+            8 => SimpleInterval::Imperfect(Size::Sixth.into(), Quality::Minor.into()).into(),
+            9 => SimpleInterval::Imperfect(Size::Sixth.into(), Quality::Major.into()).into(),
+            10 => SimpleInterval::Imperfect(Size::Seventh.into(), Quality::Minor.into()).into(),
+            11 => SimpleInterval::Imperfect(Size::Seventh.into(), Quality::Major.into()).into(),
             _ => unreachable!(),
         }
     }
 
-    fn quality(&self) -> IntervalQuality {
+    fn quality(&self) -> Quality {
         match self {
-            SimpleInterval::Perfect(_) => IntervalQuality::Perfect,
+            SimpleInterval::Perfect(_) => Quality::Perfect,
             SimpleInterval::Imperfect(_, imperfect_type) => match imperfect_type {
-                ImperfectType::Major => IntervalQuality::Major,
-                ImperfectType::Minor => IntervalQuality::Minor,
+                ImperfectType::Major => Quality::Major,
+                ImperfectType::Minor => Quality::Minor,
             },
-            SimpleInterval::Altered(_, alteration) => match alteration.alteration_type {
-                AlterationType::Diminished => IntervalQuality::Diminished(alteration.degree),
-                AlterationType::Augmented => IntervalQuality::Augmented(alteration.degree),
+            SimpleInterval::Altered(_, alteration) => match alteration.alteration_type() {
+                AlterationType::Diminished => Quality::Diminished(alteration.degree().abs() as u8),
+                AlterationType::Augmented => Quality::Augmented(alteration.degree().abs() as u8),
             },
         }
     }
 
-    fn size(&self) -> IntervalSize {
+    fn size(&self) -> Size {
         match self {
-            SimpleInterval::Perfect(size) => IntervalSize::from(*size),
-            SimpleInterval::Imperfect(size, _) => IntervalSize::from(*size),
-            SimpleInterval::Altered(size, _) => IntervalSize::from(*size),
+            SimpleInterval::Perfect(size) => Size::from(*size),
+            SimpleInterval::Imperfect(size, _) => Size::from(*size),
+            SimpleInterval::Altered(size, _) => Size::from(*size),
         }
     }
 
@@ -199,7 +100,7 @@ impl SimpleInterval {
             },
             SimpleInterval::Altered(size, alt) => match size {
                 IntervalSizeType::Perfect(size) => Self::alter_perfect(size, amount + alt.degree()),
-                IntervalSizeType::Imperfect(size) => match alt.alteration_type {
+                IntervalSizeType::Imperfect(size) => match alt.alteration_type() {
                     AlterationType::Diminished => {
                         Self::alter_imperfect(size, amount + alt.degree() - 1)
                     }
@@ -338,28 +239,28 @@ pub struct CompoundInterval {
 /// ```
 /// use resonata::intervals::*;
 ///
-/// let interval = Interval::build(IntervalQuality::Major, IntervalSize::Third, 0).unwrap();
+/// let interval = Interval::build(Quality::Major, Size::Third, 0).unwrap();
 /// assert_eq!(interval.semitones(), 4);
-/// assert_eq!(interval.quality(), IntervalQuality::Major);
-/// assert_eq!(interval.size(), IntervalSize::Third);
+/// assert_eq!(interval.quality(), Quality::Major);
+/// assert_eq!(interval.size(), Size::Third);
 /// assert_eq!(interval.octaves(), 0);
 ///
 /// let interval = inv!("P4").unwrap();
 /// assert_eq!(interval.semitones(), 5);
-/// assert_eq!(interval.quality(), IntervalQuality::Perfect);
-/// assert_eq!(interval.size(), IntervalSize::Fourth);
+/// assert_eq!(interval.quality(), Quality::Perfect);
+/// assert_eq!(interval.size(), Size::Fourth);
 /// assert_eq!(interval.octaves(), 0);
 ///
 /// let interval = Interval::augmented(1).sixth().unwrap();
 /// assert_eq!(interval.semitones(), 10);
-/// assert_eq!(interval.quality(), IntervalQuality::Augmented(1));
-/// assert_eq!(interval.size(), IntervalSize::Sixth);
+/// assert_eq!(interval.quality(), Quality::Augmented(1));
+/// assert_eq!(interval.size(), Size::Sixth);
 /// assert_eq!(interval.octaves(), 0);
 ///
 /// let interval = Interval::major().second().compound(1).unwrap();
 /// assert_eq!(interval.semitones(), 14);
-/// assert_eq!(interval.quality(), IntervalQuality::Major);
-/// assert_eq!(interval.size(), IntervalSize::Second);
+/// assert_eq!(interval.quality(), Quality::Major);
+/// assert_eq!(interval.size(), Size::Second);
 /// assert_eq!(interval.octaves(), 1);
 /// ```
 #[derive(Clone, Copy)]
@@ -372,7 +273,7 @@ pub enum Interval {
 #[macro_export]
 macro_rules! inv {
     ($s:literal) => {
-        Interval::from_string($s)
+        $s.parse::<Interval>()
     };
     ($quality:expr, $size:expr) => {
         Interval::build($quality, $size, 0)
@@ -389,17 +290,17 @@ impl Interval {
     /// ```
     /// use resonata::intervals::*;
     ///
-    /// assert!(Interval::is_valid_interval(IntervalQuality::Major, IntervalSize::Third));
-    /// assert!(!Interval::is_valid_interval(IntervalQuality::Perfect, IntervalSize::Sixth));
+    /// assert!(Interval::is_valid_interval(Quality::Major, Size::Third));
+    /// assert!(!Interval::is_valid_interval(Quality::Perfect, Size::Sixth));
     /// ```
-    pub fn is_valid_interval(quality: IntervalQuality, size: IntervalSize) -> bool {
+    pub fn is_valid_interval(quality: Quality, size: Size) -> bool {
         match size {
-            Unison | Fourth | Fifth => match quality {
-                Major | Minor => false,
+            Size::Unison | Size::Fourth | Size::Fifth => match quality {
+                Quality::Major | Quality::Minor => false,
                 _ => true,
             },
-            Second | Third | Sixth | Seventh => match quality {
-                Perfect => false,
+            Size::Second | Size::Third | Size::Sixth | Size::Seventh => match quality {
+                Quality::Perfect => false,
                 _ => true,
             },
         }
@@ -478,27 +379,27 @@ impl Interval {
     ///
     /// let interval = Interval::minor().third().raised(2).unwrap();
     /// assert_eq!(interval.semitones(), 5);
-    /// assert_eq!(interval.quality(), IntervalQuality::Augmented(1));
+    /// assert_eq!(interval.quality(), Quality::Augmented(1));
     ///
     /// let interval = Interval::major().sixth().raised(1).unwrap();
     /// assert_eq!(interval.semitones(), 10);
-    /// assert_eq!(interval.quality(), IntervalQuality::Augmented(1));
+    /// assert_eq!(interval.quality(), Quality::Augmented(1));
     ///
     /// let interval = Interval::perfect().fifth().raised(2).unwrap();
     /// assert_eq!(interval.semitones(), 9);
-    /// assert_eq!(interval.quality(), IntervalQuality::Augmented(2));
+    /// assert_eq!(interval.quality(), Quality::Augmented(2));
     ///
     /// let interval = Interval::diminished(1).seventh().unwrap().raised(1).unwrap();
     /// assert_eq!(interval.semitones(), 10);
-    /// assert_eq!(interval.quality(), IntervalQuality::Minor);
+    /// assert_eq!(interval.quality(), Quality::Minor);
     ///
     /// let interval = Interval::augmented(1).second().unwrap();
     /// assert_eq!(interval.semitones(), 3);
-    /// assert_eq!(interval.quality(), IntervalQuality::Augmented(1));
+    /// assert_eq!(interval.quality(), Quality::Augmented(1));
     ///
     /// let interval = interval.raised(1).unwrap();
     /// assert_eq!(interval.semitones(), 4);
-    /// assert_eq!(interval.quality(), IntervalQuality::Augmented(2));
+    /// assert_eq!(interval.quality(), Quality::Augmented(2));
     /// ```
     pub fn raised(self, semitones: u8) -> Result<Self> {
         let interval = match self {
@@ -522,23 +423,23 @@ impl Interval {
     ///
     /// let interval = Interval::perfect().fourth().lowered(1).unwrap();
     /// assert_eq!(interval.semitones(), 4);
-    /// assert_eq!(interval.quality(), IntervalQuality::Diminished(1));
+    /// assert_eq!(interval.quality(), Quality::Diminished(1));
     ///
     /// let interval = Interval::major().third().lowered(2).unwrap();
     /// assert_eq!(interval.semitones(), 2);
-    /// assert_eq!(interval.quality(), IntervalQuality::Diminished(1));
+    /// assert_eq!(interval.quality(), Quality::Diminished(1));
     ///
     /// let interval = Interval::minor().sixth().lowered(1).unwrap();
     /// assert_eq!(interval.semitones(), 7);
-    /// assert_eq!(interval.quality(), IntervalQuality::Diminished(1));
+    /// assert_eq!(interval.quality(), Quality::Diminished(1));
     ///
     /// let interval = Interval::augmented(1).seventh().unwrap().lowered(1).unwrap();
     /// assert_eq!(interval.semitones(), 11);
-    /// assert_eq!(interval.quality(), IntervalQuality::Major);
+    /// assert_eq!(interval.quality(), Quality::Major);
     ///
     /// let interval = Interval::diminished(1).third().unwrap().lowered(1).unwrap();
     /// assert_eq!(interval.semitones(), 1);
-    /// assert_eq!(interval.quality(), IntervalQuality::Diminished(2));
+    /// assert_eq!(interval.quality(), Quality::Diminished(2));
     /// ```
     pub fn lowered(self, semitones: u8) -> Result<Self> {
         let interval = match self {
@@ -608,7 +509,7 @@ impl Interval {
     }
 
     /// Returns the interval quality.
-    pub fn quality(&self) -> IntervalQuality {
+    pub fn quality(&self) -> Quality {
         match self {
             Interval::Simple(interval) => interval.quality(),
             Interval::Compound(interval) => interval.base_interval.quality(),
@@ -616,7 +517,7 @@ impl Interval {
     }
 
     /// Returns the size of the interval, ignoring the octaves if the interval is compound.
-    pub fn size(&self) -> IntervalSize {
+    pub fn size(&self) -> Size {
         match self {
             Interval::Simple(interval) => interval.size(),
             Interval::Compound(interval) => interval.base_interval.size(),
@@ -629,52 +530,33 @@ impl Interval {
     /// ```
     /// use resonata::intervals::*;
     ///
-    /// let interval = Interval::build(IntervalQuality::Major, IntervalSize::Third, 1).unwrap();
+    /// let interval = Interval::build(Quality::Major, Size::Third, 1).unwrap();
     /// assert_eq!(interval.semitones(), 16);
     ///
-    /// let interval = Interval::build(IntervalQuality::Minor, IntervalSize::Sixth, 2).unwrap();
+    /// let interval = Interval::build(Quality::Minor, Size::Sixth, 2).unwrap();
     /// assert_eq!(interval.semitones(), 32);
     ///
-    /// let interval = Interval::build(IntervalQuality::Diminished(1), IntervalSize::Unison, 1).unwrap();
+    /// let interval = Interval::build(Quality::Diminished(1), Size::Unison, 1).unwrap();
     /// assert_eq!(interval.semitones(), 11);
     /// ```
-    pub fn build(quality: IntervalQuality, size: IntervalSize, octaves: u8) -> Result<Self> {
+    pub fn build(quality: Quality, size: Size, octaves: u8) -> Result<Self> {
         if !Interval::is_valid_interval(quality, size) {
             nope!(IntervalError::InvalidIntervalQualityAndSize(quality, size));
         }
 
         match quality {
-            IntervalQuality::Diminished(n) => {
+            Quality::Diminished(n) => {
                 Interval::diminished(n).build(size)?.compound(octaves)
             }
-            IntervalQuality::Augmented(n) => Interval::augmented(n).build(size)?.compound(octaves),
-            IntervalQuality::Minor => Interval::minor().build(size).compound(octaves),
-            IntervalQuality::Major => Interval::major().build(size).compound(octaves),
-            IntervalQuality::Perfect => Interval::perfect().build(size).compound(octaves),
+            Quality::Augmented(n) => Interval::augmented(n).build(size)?.compound(octaves),
+            Quality::Minor => Interval::minor().build(size).compound(octaves),
+            Quality::Major => Interval::major().build(size).compound(octaves),
+            Quality::Perfect => Interval::perfect().build(size).compound(octaves),
         }
     }
 
     pub fn with_octaves(&self, octaves: u8) -> Result<Self> {
         self.compound(octaves)
-    }
-
-    /// Returns an interval from the given string, if possible.
-    ///
-    /// ### Examples
-    /// ```
-    /// use resonata::intervals::*;
-    ///
-    /// let major_third = inv!(Major, Third).unwrap();
-    /// assert_eq!(major_third, Interval::from_string("M3").unwrap());
-    ///
-    /// let augmented_octave = inv!(Augmented(1), Unison, 1).unwrap();
-    /// assert_eq!(augmented_octave, Interval::from_string("A8").unwrap());
-    ///
-    /// let invalid_interval = Interval::from_string("P3");
-    /// assert!(invalid_interval.is_err());
-    /// ```
-    pub fn from_string(s: &str) -> Result<Self> {
-        Interval::from_str(s)
     }
 
     /// Returns an interval from the given number of semitones.
@@ -683,10 +565,10 @@ impl Interval {
     /// ```
     /// use resonata::intervals::*;
     ///
-    /// let major_third = inv!(Major, Third).unwrap();
+    /// let major_third = inv!("M3").unwrap();
     /// assert_eq!(major_third, Interval::from_semitones(4).unwrap());
     ///
-    /// let augmented_octave = inv!(Augmented(1), Unison, 1).unwrap();
+    /// let augmented_octave = inv!("A8").unwrap();
     /// assert_eq!(augmented_octave, Interval::from_semitones(13).unwrap());
     ///
     /// let invalid_interval = Interval::from_semitones(128);
@@ -703,7 +585,7 @@ impl Interval {
     /// ```
     /// use resonata::intervals::*;
     ///
-    /// let major_third = inv!(Major, Third).unwrap();
+    /// let major_third = inv!("M3").unwrap();
     /// assert_eq!(major_third.to_semitones(), 4);
     /// ```
     pub fn to_semitones(&self) -> i32 {
@@ -717,25 +599,25 @@ impl Interval {
     /// ```
     /// use resonata::intervals::*;
     ///
-    /// let major_third = inv!(Major, Third).unwrap();
+    /// let major_third = inv!("M3").unwrap();
     /// assert_eq!(major_third.get_quality_offset(), 0);
     ///
-    /// let minor_third = inv!(Minor, Third).unwrap();
+    /// let minor_third = inv!("m3").unwrap();
     /// assert_eq!(minor_third.get_quality_offset(), -1);
     ///
-    /// let diminished_third = inv!(Diminished(1), Third).unwrap();
+    /// let diminished_third = inv!("d3").unwrap();
     /// assert_eq!(diminished_third.get_quality_offset(), -2);
     ///
-    /// let augmented_second = inv!(Augmented(1), Second).unwrap();
+    /// let augmented_second = inv!("A2").unwrap();
     /// assert_eq!(augmented_second.get_quality_offset(), 1);
     /// ```
     pub fn get_quality_offset(&self) -> i32 {
         match self.quality() {
-            Perfect | Major => 0,
-            Minor => -1,
-            Augmented(n) => n as i32,
-            Diminished(n) => match self.size() {
-                Unison | Fourth | Fifth => -(n as i32),
+            Quality::Perfect | Quality::Major => 0,
+            Quality::Minor => -1,
+            Quality::Augmented(n) => n as i32,
+            Quality::Diminished(n) => match self.size() {
+                Size::Unison | Size::Fourth | Size::Fifth => -(n as i32),
                 _ => -(n as i32 + 1),
             },
         }
@@ -752,23 +634,23 @@ impl Interval {
     /// ```
     /// use resonata::intervals::*;
     ///
-    /// let perfect_unison = inv!(Perfect, Unison).unwrap();
-    /// let diminished_second = perfect_unison.as_size(Second, 0).unwrap();
-    /// assert_eq!(diminished_second, inv!(Diminished(1), Second).unwrap());
+    /// let perfect_unison = inv!("PU").unwrap();
+    /// let diminished_second = perfect_unison.as_size(Size::Second, 0).unwrap();
+    /// assert_eq!(diminished_second, inv!("d2").unwrap());
     ///
-    /// let minor_third = inv!(Minor, Third).unwrap();
-    /// let augmented_second = minor_third.as_size(Second, 0).unwrap();
-    /// assert_eq!(augmented_second, inv!(Augmented(1), Second).unwrap());
+    /// let minor_third = inv!("m3").unwrap();
+    /// let augmented_second = minor_third.as_size(Size::Second, 0).unwrap();
+    /// assert_eq!(augmented_second, inv!("A2").unwrap());
     ///
-    /// let major_second = inv!(Major, Second).unwrap();
-    /// let diminished_third = major_second.as_size(Third, 0).unwrap();
-    /// assert_eq!(diminished_third, inv!(Diminished(1), Third).unwrap());
+    /// let major_second = inv!("M2").unwrap();
+    /// let diminished_third = major_second.as_size(Size::Third, 0).unwrap();
+    /// assert_eq!(diminished_third, inv!("d3").unwrap());
     ///
-    /// let major_seventh = inv!(Major, Seventh).unwrap();
-    /// let diminished_octave = major_seventh.as_size(Unison, 1).unwrap();
-    /// assert_eq!(diminished_octave, inv!(Diminished(1), Unison, 1).unwrap());
+    /// let major_seventh = inv!("M7").unwrap();
+    /// let diminished_octave = major_seventh.as_size(Size::Unison, 1).unwrap();
+    /// assert_eq!(diminished_octave, inv!("d8").unwrap());
     /// ```
-    pub fn as_size(&self, size: IntervalSize, octaves: u8) -> Result<Self> {
+    pub fn as_size(&self, size: Size, octaves: u8) -> Result<Self> {
         if size == self.size() {
             return Ok(*self);
         }
@@ -777,15 +659,15 @@ impl Interval {
         let diff = self.to_semitones() - target_semitones;
 
         let quality = match size {
-            Unison | Fourth | Fifth => match diff {
-                d if d > 0 => Augmented(d as u8),
-                d if d < 0 => Diminished(d.abs() as u8),
+            Size::Unison | Size::Fourth | Size::Fifth => match diff {
+                d if d > 0 => Quality::Augmented(d as u8),
+                d if d < 0 => Quality::Diminished(d.abs() as u8),
                 _ => self.quality(),
             },
             _ => match diff {
-                -1 => Minor,
-                d if d > 0 => Augmented(d as u8),
-                d if d < 0 => Diminished(d.abs() as u8 - 1),
+                -1 => Quality::Minor,
+                d if d > 0 => Quality::Augmented(d as u8),
+                d if d < 0 => Quality::Diminished(d.abs() as u8 - 1),
                 _ => self.quality(),
             },
         };
@@ -799,10 +681,10 @@ impl Interval {
     /// ```
     /// use resonata::intervals::*;
     ///
-    /// let interval = inv!(Major, Third).unwrap();
+    /// let interval = inv!("M3").unwrap();
     /// assert_eq!(interval.to_diatonic_steps(), 2);
     ///
-    /// let interval = inv!(Minor, Second, 1).unwrap();
+    /// let interval = inv!("m9").unwrap();
     /// assert_eq!(interval.to_diatonic_steps(), 8);
     /// ```
     pub fn to_diatonic_steps(&self) -> i32 {

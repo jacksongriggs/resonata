@@ -33,7 +33,7 @@ type Result<T> = std::result::Result<T, ResonataError>;
 /// let key = key!("F#").unwrap();
 /// assert_eq!(key.root().unwrap(), note!("G").unwrap());
 ///
-/// let key = key.transposed_up(inv!("d3").unwrap());
+/// let key = key + inv!("d3").unwrap();
 /// assert_eq!(key.root().unwrap(), note!("Bbb").unwrap());
 /// ```
 #[derive(Clone, PartialEq, Eq)]
@@ -44,7 +44,7 @@ pub struct Key {
 #[macro_export]
 macro_rules! key {
     ($str:literal) => {
-        Key::from_string($str)
+        $str.parse::<Key>()
     };
     ($($note:expr),*) => {
         {
@@ -73,28 +73,6 @@ impl Key {
         }
 
         Key { pitches }
-    }
-
-    /// Returns a key from the given string. The string should be a space- or comma-separated list of notes.
-    ///
-    /// ### Examples
-    /// ```
-    /// use resonata::{notes::*, keys::*};
-    ///
-    /// let key = Key::from_string("Eb F G Ab Bb C D").unwrap();
-    /// assert_eq!(key.pitch(NoteName::C).accidental(), Accidental::Natural);
-    /// assert_eq!(key.pitch(NoteName::D).accidental(), Accidental::Natural);
-    /// assert_eq!(key.pitch(NoteName::E).accidental(), Accidental::Flat(1));
-    /// assert_eq!(key.pitch(NoteName::F).accidental(), Accidental::Natural);
-    /// assert_eq!(key.pitch(NoteName::G).accidental(), Accidental::Natural);
-    /// assert_eq!(key.pitch(NoteName::A).accidental(), Accidental::Flat(1));
-    /// assert_eq!(key.pitch(NoteName::B).accidental(), Accidental::Flat(1));
-    /// ```
-    pub fn from_string(s: &str) -> Result<Key> {
-        let s = s.replace(",", " ");
-        let notes =
-            s.split_whitespace().map(|s| Note::from_string(s)).collect::<Result<Vec<Note>>>()?;
-        Ok(Key::new(notes))
     }
 
     pub fn set_pitch(&mut self, note: Note) {
@@ -155,10 +133,10 @@ impl Key {
     /// use resonata::{notes::*, keys::*, scales::*};
     ///
     /// let key = key!(note!("F#").unwrap());
-    /// assert_eq!(key.to_scale_type(), Some(Major.into()));
+    /// assert_eq!(key.to_scale_type(), Some(ScaleType::Major.into()));
     ///
     /// let key = key!(note!("G#").unwrap());
-    /// assert_eq!(key.to_scale_type(), Some(HarmonicMinor.into()));
+    /// assert_eq!(key.to_scale_type(), Some(ScaleType::HarmonicMinor.into()));
     ///
     /// let key = key!(note!("Fb").unwrap());
     /// assert!(key.to_scale_type().is_none());
@@ -179,11 +157,11 @@ impl Key {
     ///
     /// let key = key!(note!("F#").unwrap());
     /// assert_eq!(key.root().unwrap(), note!("G").unwrap());
-    /// assert_eq!(key.to_scale_type().unwrap(), Major.into());
+    /// assert_eq!(key.to_scale_type().unwrap(), ScaleType::Major.into());
     ///
     /// let key = key!(note!("G#").unwrap());
     /// assert_eq!(key.root().unwrap(), note!("A").unwrap());
-    /// assert_eq!(key.to_scale_type().unwrap(), HarmonicMinor.into());
+    /// assert_eq!(key.to_scale_type().unwrap(), ScaleType::HarmonicMinor.into());
     ///
     /// let key = key!(note!("Fb").unwrap());
     /// assert!(key.root().is_none());
